@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "818955569580",
+    "firebase_url": "https://kiranastoremanager.firebaseio.com",
+    "project_id": "kiranastoremanager",
+    "storage_bucket": "kiranastoremanager.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:818955569580:android:1b0c094ad379890c",
+        "android_client_info": {
+          "package_name": "com.appdev.jayesh.kiranastoremanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "818955569580-f3t473o1s3t19c9fhgij9eo02kbgq91s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.appdev.jayesh.kiranastoremanager",
+            "certificate_hash": "65da0f1c54450679a25528006d464964c854a7e1"
+          }
+        },
+        {
+          "client_id": "818955569580-n0j4gcsmrbilu7puqssjhrojear5l5ug.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUf4kbhyNHpFxH5R9OzIlmBpprQ3OWVrY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "818955569580-n0j4gcsmrbilu7puqssjhrojear5l5ug.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
