@@ -1,14 +1,12 @@
 package com.appdev.jayesh.kiranastoremanager.Model;
 
 import java.util.HashMap;
-import java.util.List;
 
 public class Items {
     private String Name;
     private double Price;
-    private String ItemFor;
     private double Cost;
-    private String key;
+    private String id;
 
     public HashMap<String, Boolean> getUsedFor() {
         return UsedFor;
@@ -39,14 +37,6 @@ public class Items {
         this.Price = price;
     }
 
-    public String getItemFor() {
-        return ItemFor;
-    }
-
-    public void setItemFor(String itemFor) {
-        this.ItemFor = itemFor;
-    }
-
     public double getCost() {
         return Cost;
     }
@@ -55,11 +45,11 @@ public class Items {
         this.Cost = cost;
     }
 
-    public String getKey() {
-        return key;
+    public String getId() {
+        return id;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void setId(String id) {
+        this.id = id;
     }
 }

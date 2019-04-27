@@ -3,7 +3,6 @@ package com.appdev.jayesh.kiranastoremanager;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,6 +12,7 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -32,6 +32,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -45,6 +46,12 @@ public class ItemsActivity extends AppCompatActivity {
     EditText itemName;
     EditText itemPrice;
     EditText itemCost;
+    CheckBox cashSale;
+    CheckBox creditSale;
+    CheckBox cashPurchase;
+    CheckBox creditPurchase;
+    CheckBox otherPayments;
+
 
     FirebaseFirestore firebaseFirestore;
     FirebaseAuth mAuth;
@@ -68,6 +75,11 @@ public class ItemsActivity extends AppCompatActivity {
         itemName = findViewById(R.id.itemName);
         itemPrice = findViewById(R.id.itemPrice);
         itemCost = findViewById(R.id.itemCost);
+        cashSale = findViewById(R.id.cashSale);
+        creditSale = findViewById(R.id.creditSale);
+        cashPurchase = findViewById(R.id.cashPurchase);
+        creditPurchase = findViewById(R.id.creditPurchase);
+        otherPayments = findViewById(R.id.otherPayments);
 
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Please wait...");
@@ -107,7 +119,7 @@ public class ItemsActivity extends AppCompatActivity {
                                     Log.d(TAG, "New : " + dc.getDocument().getData());
                                     ObjectMapper mapper = new ObjectMapper();
                                     Items item = mapper.convertValue(dc.getDocument().getData(), Items.class);
-                                    item.setKey(dc.getDocument().getId());
+                                    item.setId(dc.getDocument().getId());
                                     itemsList.add(item);
                                     adapter.notifyDataSetChanged();
                                     resetView();
@@ -117,7 +129,7 @@ public class ItemsActivity extends AppCompatActivity {
 
                                     mapper = new ObjectMapper();
                                     item = mapper.convertValue(dc.getDocument().getData(), Items.class);
-                                    item.setKey(dc.getDocument().getId());
+                                    item.setId(dc.getDocument().getId());
                                     itemsList.set(globalItemPosition, item);
 
                                     resetView();
@@ -142,8 +154,13 @@ public class ItemsActivity extends AppCompatActivity {
                 itemName.setText(item.getName());
                 itemPrice.setText(item.getPrice() + "");
                 itemCost.setText(item.getCost() + "");
+                cashSale.setChecked(item.getUsedFor().get("CashSale"));
+                creditSale.setChecked(item.getUsedFor().get("CreditSale"));
+                cashPurchase.setChecked(item.getUsedFor().get("CashPurchase"));
+                creditPurchase.setChecked(item.getUsedFor().get("CreditPurchase"));
+                otherPayments.setChecked(item.getUsedFor().get("OtherPayments"));
 
-                globalITemId = item.getKey();
+                globalITemId = item.getId();
                 globalItemPosition = position;
             }
 
@@ -160,10 +177,17 @@ public class ItemsActivity extends AppCompatActivity {
         String cost = itemCost.getText().toString();
 
         final Items item = new Items();
+        HashMap<String, Boolean> usedFor = new HashMap<>();
         item.setName(name);
         item.setPrice(UHelper.parseDouble(price));
         item.setCost(UHelper.parseDouble(cost));
-        item.setKey(globalITemId);
+        item.setId(globalITemId);
+        usedFor.put("CashSale", cashSale.isChecked());
+        usedFor.put("CreditSale", creditSale.isChecked());
+        usedFor.put("CashPurchase", cashPurchase.isChecked());
+        usedFor.put("CreditPurchase", creditPurchase.isChecked());
+        usedFor.put("OtherPayments", otherPayments.isChecked());
+        item.setUsedFor(usedFor);
 
         if (name.length() == 0)
             return;
@@ -233,6 +257,12 @@ public class ItemsActivity extends AppCompatActivity {
         itemName.setText(null);
         itemPrice.setText(null);
         itemCost.setText(null);
+
+        cashSale.setChecked(false);
+        creditSale.setChecked(false);
+        cashPurchase.setChecked(false);
+        creditPurchase.setChecked(false);
+        otherPayments.setChecked(false);
 
         adapter.notifyDataSetChanged();
     }

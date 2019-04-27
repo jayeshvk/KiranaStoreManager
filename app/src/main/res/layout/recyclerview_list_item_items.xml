@@ -12,18 +12,62 @@
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="File Name: "
+        android:text="Item Name"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/price"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/key"
+        <CheckBox
+            android:id="@+id/cashSale"
+            style="@style/DisabledCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cash Sale" />
+
+        <CheckBox
+            android:id="@+id/creditSale"
+            style="@style/DisabledCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Credit Sale" />
+
+        <CheckBox
+            android:id="@+id/creditPurchase"
+            style="@style/DisabledCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Credit Purchase" />
+
+        <CheckBox
+            android:id="@+id/cashPurchase"
+            style="@style/DisabledCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cash Purchase" />
+
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/otherPayments"
+            style="@style/DisabledCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Other Payments" />
+
+    </LinearLayout>
 
     />
 </LinearLayout>

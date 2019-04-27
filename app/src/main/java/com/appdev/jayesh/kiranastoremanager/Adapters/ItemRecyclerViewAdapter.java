@@ -1,9 +1,11 @@
 package com.appdev.jayesh.kiranastoremanager.Adapters;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.appdev.jayesh.kiranastoremanager.Model.Items;
@@ -16,19 +18,23 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
     private List<Items> itemsList;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView name, key, price;
+        public TextView name;
+        public CheckBox cashSale, creditSale, cashPurchase, creditPurchase, otherPayments;
 
         public MyViewHolder(View view) {
             super(view);
             name = view.findViewById(R.id.name);
-            price = view.findViewById(R.id.price);
-            key = view.findViewById(R.id.key);
+            cashSale = view.findViewById(R.id.cashSale);
+            creditSale = view.findViewById(R.id.creditSale);
+            cashPurchase = view.findViewById(R.id.cashPurchase);
+            creditPurchase = view.findViewById(R.id.creditPurchase);
+            otherPayments = view.findViewById(R.id.otherPayments);
         }
 
     }
 
-    public ItemRecyclerViewAdapter(List<Items> backupFileList) {
-        this.itemsList = backupFileList;
+    public ItemRecyclerViewAdapter(List<Items> itemlList) {
+        this.itemsList = itemlList;
     }
 
     @Override
@@ -43,8 +49,14 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
     public void onBindViewHolder(MyViewHolder holder, int position) {
         Items item = itemsList.get(position);
         holder.name.setText(item.getName());
-        holder.price.setText(item.getPrice() + "");
-        holder.key.setText(item.getKey());
+        System.out.println("Data Hashmap" + item.getUsedFor().get("CashSale"));
+        if (item.getUsedFor() != null) {
+            holder.cashSale.setChecked(item.getUsedFor().get("CashSale"));
+            holder.creditSale.setChecked(item.getUsedFor().get("CreditSale"));
+            holder.cashPurchase.setChecked(item.getUsedFor().get("CashPurchase"));
+            holder.creditPurchase.setChecked(item.getUsedFor().get("CreditPurchase"));
+            holder.otherPayments.setChecked(item.getUsedFor().get("OtherPayments"));
+        }
     }
 
 
