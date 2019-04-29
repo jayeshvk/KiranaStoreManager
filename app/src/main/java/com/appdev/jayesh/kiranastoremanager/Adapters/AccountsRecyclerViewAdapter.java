@@ -16,19 +16,6 @@ public class AccountsRecyclerViewAdapter extends RecyclerView.Adapter<AccountsRe
 
     private List<Accounts> accountsList;
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView name;
-        public CheckBox customer, vendor;
-
-        public MyViewHolder(View view) {
-            super(view);
-            name = view.findViewById(R.id.name);
-            customer = view.findViewById(R.id.customer);
-            vendor = view.findViewById(R.id.vendor);
-        }
-
-    }
-
     public AccountsRecyclerViewAdapter(List<Accounts> accountsList) {
         this.accountsList = accountsList;
     }
@@ -50,9 +37,21 @@ public class AccountsRecyclerViewAdapter extends RecyclerView.Adapter<AccountsRe
 
     }
 
-
     @Override
     public int getItemCount() {
         return accountsList.size();
+    }
+
+    public class MyViewHolder extends RecyclerView.ViewHolder {
+        public TextView name;
+        public CheckBox customer, vendor;
+
+        public MyViewHolder(View view) {
+            super(view);
+            name = view.findViewById(R.id.name);
+            customer = view.findViewById(R.id.customer);
+            vendor = view.findViewById(R.id.vendor);
+        }
+
     }
 }

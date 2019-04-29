@@ -1,7 +1,6 @@
 package com.appdev.jayesh.kiranastoremanager.Adapters;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +28,23 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
             cashPurchase = view.findViewById(R.id.cashPurchase);
             creditPurchase = view.findViewById(R.id.creditPurchase);
             otherPayments = view.findViewById(R.id.otherPayments);
+            System.out.println("Clicked on " + cashSale.isChecked());
+
+            cashSale.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    System.out.println("Clicked on " + cashSale.isChecked());
+
+                }
+            });
+            name.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    System.out.println("Clicked on item name" + cashSale.isChecked());
+
+                }
+            });
+
         }
 
     }
@@ -49,7 +65,6 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
     public void onBindViewHolder(MyViewHolder holder, int position) {
         Items item = itemsList.get(position);
         holder.name.setText(item.getName());
-        System.out.println("Data Hashmap" + item.getUsedFor().get("CashSale"));
         if (item.getUsedFor() != null) {
             holder.cashSale.setChecked(item.getUsedFor().get("CashSale"));
             holder.creditSale.setChecked(item.getUsedFor().get("CreditSale"));

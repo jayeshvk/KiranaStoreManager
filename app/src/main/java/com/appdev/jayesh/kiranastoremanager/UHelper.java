@@ -398,4 +398,11 @@ public class UHelper {
         return timeString;
     }
 
+    public static long getTimeInMili() {
+
+        Date date = new Date();
+
+        return date.getTime();
+    }
+
 }

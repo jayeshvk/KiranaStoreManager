@@ -19,7 +19,6 @@ import android.widget.Toast;
 import com.appdev.jayesh.kiranastoremanager.Adapters.ItemRecyclerViewAdapter;
 import com.appdev.jayesh.kiranastoremanager.Adapters.RecyclerTouchListener;
 import com.appdev.jayesh.kiranastoremanager.Model.Items;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -57,13 +56,10 @@ public class ItemsActivity extends AppCompatActivity {
     FirebaseAuth mAuth;
     FirebaseUser user;
     List<Items> itemsList = new ArrayList<>();
-
-    private ProgressDialog pDialog;
-
     String globalITemId = null;
     int globalItemPosition = -1;
-
     ItemRecyclerViewAdapter adapter = new ItemRecyclerViewAdapter(itemsList);
+    private ProgressDialog pDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,27 +113,29 @@ public class ItemsActivity extends AppCompatActivity {
                             switch (dc.getType()) {
                                 case ADDED:
                                     Log.d(TAG, "New : " + dc.getDocument().getData());
-                                    ObjectMapper mapper = new ObjectMapper();
-                                    Items item = mapper.convertValue(dc.getDocument().getData(), Items.class);
-                                    item.setId(dc.getDocument().getId());
-                                    itemsList.add(item);
+                                    Items itemAdded = dc.getDocument().toObject(Items.class);
+                                    /*ObjectMapper mapper = new ObjectMapper();
+                                    Items item = mapper.convertValue(dc.getDocument().getData(), Items.class);*/
+                                    itemAdded.setId(dc.getDocument().getId());
+                                    itemsList.add(itemAdded);
                                     adapter.notifyDataSetChanged();
                                     resetView();
                                     break;
                                 case MODIFIED:
                                     Log.d(TAG, "Modified : " + dc.getDocument().getData());
-
-                                    mapper = new ObjectMapper();
-                                    item = mapper.convertValue(dc.getDocument().getData(), Items.class);
-                                    item.setId(dc.getDocument().getId());
-                                    itemsList.set(globalItemPosition, item);
+                                    Items itemModified = dc.getDocument().toObject(Items.class);
+/*                                    mapper = new ObjectMapper();
+                                    item = mapper.convertValue(dc.getDocument().getData(), Items.class);*/
+                                    itemModified.setId(dc.getDocument().getId());
+                                    itemsList.set(globalItemPosition, itemModified);
 
                                     resetView();
                                     break;
                                 case REMOVED:
                                     Log.d(TAG, "Removed : " + dc.getDocument().getData());
                                     toast("Item " + itemsList.get(globalItemPosition).getName() + " deleted successfully");
-                                    itemsList.remove(globalItemPosition);
+                                    if (globalItemPosition != -1)
+                                        itemsList.remove(globalItemPosition);
                                     resetView();
                                     break;
                             }

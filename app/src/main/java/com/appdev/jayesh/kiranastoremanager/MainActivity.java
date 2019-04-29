@@ -1,6 +1,5 @@
 package com.appdev.jayesh.kiranastoremanager;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -212,4 +211,8 @@ public class MainActivity extends AppCompatActivity {
         toast.show();
     }
 
+    public void cashSales(View view) {
+        startActivity(new Intent(MainActivity.this, CashSales.class));
+
+    }
 }
