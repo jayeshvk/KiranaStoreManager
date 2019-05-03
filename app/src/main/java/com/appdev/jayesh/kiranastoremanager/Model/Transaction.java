@@ -1,16 +1,36 @@
 package com.appdev.jayesh.kiranastoremanager.Model;
 
+import com.google.firebase.firestore.FieldValue;
+
 public class Transaction {
 
     private String accountName;
     private String transactionType;
     private Long timeInMilli;
     private String itemName;
+    private String itemId;
     private double quantity;
     private double price;
     private double amount;
     private String notes;
     private String Id;
+    private FieldValue timestamp;
+
+    public FieldValue getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(FieldValue timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(String itemId) {
+        this.itemId = itemId;
+    }
 
     public String getId() {
         return Id;

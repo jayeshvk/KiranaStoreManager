@@ -29,6 +29,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,8 +40,6 @@ import javax.annotation.Nullable;
 public class ItemsActivity extends AppCompatActivity {
 
     private static final String TAG = "ItemsActivity";
-    private static final String ITEMS = "Items";
-    private static final String USERS = "users";
 
     EditText itemName;
     EditText itemPrice;
@@ -49,7 +48,7 @@ public class ItemsActivity extends AppCompatActivity {
     CheckBox creditSale;
     CheckBox cashPurchase;
     CheckBox creditPurchase;
-    CheckBox otherPayments;
+    CheckBox expenses;
 
 
     FirebaseFirestore firebaseFirestore;
@@ -65,7 +64,6 @@ public class ItemsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_items);
-
         this.setTitle("Manage Items");
 
         itemName = findViewById(R.id.itemName);
@@ -75,7 +73,7 @@ public class ItemsActivity extends AppCompatActivity {
         creditSale = findViewById(R.id.creditSale);
         cashPurchase = findViewById(R.id.cashPurchase);
         creditPurchase = findViewById(R.id.creditPurchase);
-        otherPayments = findViewById(R.id.otherPayments);
+        expenses = findViewById(R.id.otherPayments);
 
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Please wait...");
@@ -99,7 +97,7 @@ public class ItemsActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         showProgressBar(true);
-        firebaseFirestore.collection(USERS).document(mAuth.getCurrentUser().getUid()).collection(ITEMS)
+        firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException e) {
@@ -112,28 +110,24 @@ public class ItemsActivity extends AppCompatActivity {
                         for (DocumentChange dc : snapshots.getDocumentChanges()) {
                             switch (dc.getType()) {
                                 case ADDED:
-                                    Log.d(TAG, "New : " + dc.getDocument().getData());
                                     Items itemAdded = dc.getDocument().toObject(Items.class);
-                                    /*ObjectMapper mapper = new ObjectMapper();
-                                    Items item = mapper.convertValue(dc.getDocument().getData(), Items.class);*/
-                                    itemAdded.setId(dc.getDocument().getId());
+                                    //itemAdded.setId(dc.getDocument().getId());
                                     itemsList.add(itemAdded);
                                     adapter.notifyDataSetChanged();
                                     resetView();
                                     break;
                                 case MODIFIED:
-                                    Log.d(TAG, "Modified : " + dc.getDocument().getData());
                                     Items itemModified = dc.getDocument().toObject(Items.class);
-/*                                    mapper = new ObjectMapper();
-                                    item = mapper.convertValue(dc.getDocument().getData(), Items.class);*/
-                                    itemModified.setId(dc.getDocument().getId());
+                                    //itemModified.setId(dc.getDocument().getId());
                                     itemsList.set(globalItemPosition, itemModified);
-
                                     resetView();
                                     break;
                                 case REMOVED:
-                                    Log.d(TAG, "Removed : " + dc.getDocument().getData());
-                                    toast("Item " + itemsList.get(globalItemPosition).getName() + " deleted successfully");
+                                    try {
+                                        toast("Item " + itemsList.get(globalItemPosition).getName() + " deleted successfully");
+                                    } catch (ArrayIndexOutOfBoundsException error) {
+                                        Log.d(TAG, error.toString());
+                                    }
                                     if (globalItemPosition != -1)
                                         itemsList.remove(globalItemPosition);
                                     resetView();
@@ -152,11 +146,11 @@ public class ItemsActivity extends AppCompatActivity {
                 itemName.setText(item.getName());
                 itemPrice.setText(item.getPrice() + "");
                 itemCost.setText(item.getCost() + "");
-                cashSale.setChecked(item.getUsedFor().get("CashSale"));
-                creditSale.setChecked(item.getUsedFor().get("CreditSale"));
-                cashPurchase.setChecked(item.getUsedFor().get("CashPurchase"));
-                creditPurchase.setChecked(item.getUsedFor().get("CreditPurchase"));
-                otherPayments.setChecked(item.getUsedFor().get("OtherPayments"));
+                cashSale.setChecked(item.getUsedFor().get(Constants.CASHSALES));
+                creditSale.setChecked(item.getUsedFor().get(Constants.CREDITSALES));
+                cashPurchase.setChecked(item.getUsedFor().get(Constants.CASHPURCHASE));
+                creditPurchase.setChecked(item.getUsedFor().get(Constants.CREDITPURCHASE));
+                expenses.setChecked(item.getUsedFor().get(Constants.EXPENSES));
 
                 globalITemId = item.getId();
                 globalItemPosition = position;
@@ -180,11 +174,11 @@ public class ItemsActivity extends AppCompatActivity {
         item.setPrice(UHelper.parseDouble(price));
         item.setCost(UHelper.parseDouble(cost));
         item.setId(globalITemId);
-        usedFor.put("CashSale", cashSale.isChecked());
-        usedFor.put("CreditSale", creditSale.isChecked());
-        usedFor.put("CashPurchase", cashPurchase.isChecked());
-        usedFor.put("CreditPurchase", creditPurchase.isChecked());
-        usedFor.put("OtherPayments", otherPayments.isChecked());
+        usedFor.put(Constants.CASHSALES, cashSale.isChecked());
+        usedFor.put(Constants.CREDITSALES, creditSale.isChecked());
+        usedFor.put(Constants.CASHPURCHASE, cashPurchase.isChecked());
+        usedFor.put(Constants.CREDITPURCHASE, creditPurchase.isChecked());
+        usedFor.put(Constants.EXPENSES, expenses.isChecked());
         item.setUsedFor(usedFor);
 
         if (name.length() == 0)
@@ -192,13 +186,13 @@ public class ItemsActivity extends AppCompatActivity {
 
         //update item if item has been selected before
         if (globalItemPosition != -1 && globalITemId != null) {
-            firebaseFirestore.collection(USERS).document(mAuth.getUid()).collection(ITEMS).document(globalITemId)
+            firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ITEMS).document(globalITemId)
                     .set(item)
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
-                            Log.d(TAG, "DocumentSnapshot successfully written!");
                             toast("Item " + item.getName() + " updated successfully");
+                            resetView();
 
                         }
                     })
@@ -213,25 +207,26 @@ public class ItemsActivity extends AppCompatActivity {
 
 
         // Add a new document with a generated ID
-        firebaseFirestore.collection(USERS).document(mAuth.getCurrentUser().getUid()).collection(ITEMS)
-                .add(item).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+        DocumentReference documentItem = firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS).document();
+        item.setId(documentItem.getId());
+        documentItem.set(item, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
-            public void onSuccess(DocumentReference documentReference) {
-                Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
+            public void onSuccess(Void aVoid) {
                 toast("Item " + item.getName() + " added successfully");
-
+                resetView();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.d(TAG, "Error adding document try again " + e);
+
             }
         });
     }
 
     public void delete(View view) {
         if (globalItemPosition != -1 && globalITemId != null) {
-            firebaseFirestore.collection(USERS).document(mAuth.getCurrentUser().getUid()).collection(ITEMS).document(globalITemId)
+            firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS).document(globalITemId)
                     .delete()
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
@@ -260,7 +255,7 @@ public class ItemsActivity extends AppCompatActivity {
         creditSale.setChecked(false);
         cashPurchase.setChecked(false);
         creditPurchase.setChecked(false);
-        otherPayments.setChecked(false);
+        expenses.setChecked(false);
 
         adapter.notifyDataSetChanged();
     }
@@ -303,7 +298,6 @@ public class ItemsActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
         if (id == R.id.add) {
             resetView();
         }

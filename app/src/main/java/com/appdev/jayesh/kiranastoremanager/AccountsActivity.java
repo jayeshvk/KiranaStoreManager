@@ -19,7 +19,6 @@ import android.widget.Toast;
 import com.appdev.jayesh.kiranastoremanager.Adapters.AccountsRecyclerViewAdapter;
 import com.appdev.jayesh.kiranastoremanager.Adapters.RecyclerTouchListener;
 import com.appdev.jayesh.kiranastoremanager.Model.Accounts;
-import com.appdev.jayesh.kiranastoremanager.Model.Items;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -31,6 +30,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +40,6 @@ import javax.annotation.Nullable;
 public class AccountsActivity extends AppCompatActivity {
 
     private static final String TAG = "ItemsActivity";
-    private static final String ACCOUNTS = "Accounts";
-    private static final String USERS = "users";
     EditText accountName;
     EditText accountMobile;
     CheckBox customer, vendor;
@@ -92,7 +90,7 @@ public class AccountsActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         showProgressBar(true);
-        firebaseFirestore.collection(USERS).document(mAuth.getCurrentUser().getUid()).collection(ACCOUNTS)
+        firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ACCOUNTS)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException e) {
@@ -105,27 +103,24 @@ public class AccountsActivity extends AppCompatActivity {
                         for (DocumentChange dc : snapshots.getDocumentChanges()) {
                             switch (dc.getType()) {
                                 case ADDED:
-                                    Log.d(TAG, "New : " + dc.getDocument().getData());
                                     ObjectMapper mapper = new ObjectMapper();
                                     Accounts account = mapper.convertValue(dc.getDocument().getData(), Accounts.class);
-                                    account.setId(dc.getDocument().getId());
                                     accountsList.add(account);
                                     adapter.notifyDataSetChanged();
                                     resetView();
                                     break;
                                 case MODIFIED:
-                                    Log.d(TAG, "Modified : " + dc.getDocument().getData());
-
                                     mapper = new ObjectMapper();
                                     account = mapper.convertValue(dc.getDocument().getData(), Accounts.class);
-                                    account.setId(dc.getDocument().getId());
                                     accountsList.set(globalItemPosition, account);
-
                                     resetView();
                                     break;
                                 case REMOVED:
-                                    Log.d(TAG, "Removed : " + dc.getDocument().getData());
-                                    toast("Item " + accountsList.get(globalItemPosition).getName() + " deleted successfully");
+                                    try {
+                                        toast("Item " + accountsList.get(globalItemPosition).getName() + " deleted successfully");
+                                    } catch (ArrayIndexOutOfBoundsException error) {
+                                        Log.d(TAG, error.toString());
+                                    }
                                     accountsList.remove(globalItemPosition);
                                     resetView();
                                     break;
@@ -177,12 +172,11 @@ public class AccountsActivity extends AppCompatActivity {
 
         //update account if item has been selected before
         if (globalItemPosition != -1 && globalITemId != null) {
-            firebaseFirestore.collection(USERS).document(mAuth.getUid()).collection(ACCOUNTS).document(globalITemId)
+            firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ACCOUNTS).document(globalITemId)
                     .set(accounts)
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
-                            Log.d(TAG, "DocumentSnapshot successfully written!");
                             toast("Account " + accounts.getName() + " updated successfully");
 
                         }
@@ -198,11 +192,11 @@ public class AccountsActivity extends AppCompatActivity {
 
 
         // Add a new account with a generated ID
-        firebaseFirestore.collection(USERS).document(mAuth.getCurrentUser().getUid()).collection(ACCOUNTS)
-                .add(accounts).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+        DocumentReference documentAccount = firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ACCOUNTS).document();
+        accounts.setId(documentAccount.getId());
+        documentAccount.set(accounts, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
-            public void onSuccess(DocumentReference documentReference) {
-                Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
+            public void onSuccess(Void aVoid) {
                 toast("Account " + accounts.getName() + " added successfully");
 
             }
@@ -210,13 +204,14 @@ public class AccountsActivity extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.d(TAG, "Error adding document try again " + e);
+
             }
         });
     }
 
     public void delete(View view) {
         if (globalItemPosition != -1 && globalITemId != null) {
-            firebaseFirestore.collection(USERS).document(mAuth.getCurrentUser().getUid()).collection(ACCOUNTS).document(globalITemId)
+            firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ACCOUNTS).document(globalITemId)
                     .delete()
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override

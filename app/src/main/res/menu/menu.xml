@@ -3,6 +3,6 @@
     <itemName
         android:id="@+id/add"
         android:icon="@drawable/ic_add_black_24dp"
-        android:title=""
+        android:title="Title"
         app:showAsAction="always" />
 </menu>

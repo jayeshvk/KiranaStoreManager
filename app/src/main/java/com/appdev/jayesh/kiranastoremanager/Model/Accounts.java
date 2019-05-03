@@ -1,6 +1,6 @@
 package com.appdev.jayesh.kiranastoremanager.Model;
 
-import java.util.ArrayList;
+import android.support.annotation.NonNull;
 
 public class Accounts {
     private String name;
@@ -50,6 +50,23 @@ public class Accounts {
 
     public void setVendor(boolean vendor) {
         this.vendor = vendor;
+    }
+
+    //to display object as a string in spinner
+    @NonNull
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Accounts) {
+            Accounts c = (Accounts) obj;
+            if (c.getName().equals(name) && c.getId() == id) return true;
+        }
+
+        return false;
     }
 
 }

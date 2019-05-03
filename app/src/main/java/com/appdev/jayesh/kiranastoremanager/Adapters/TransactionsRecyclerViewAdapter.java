@@ -23,6 +23,7 @@ import java.util.List;
 public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<TransactionsRecyclerViewAdapter.MyViewHolder> {
 
     public List<Transaction> transactionList;
+    public double total;
 
     class MyViewHolder extends RecyclerView.ViewHolder {
         TextView itemName;
@@ -87,6 +88,7 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
                     transactionList.get(getAdapterPosition()).setQuantity(UHelper.parseDouble(quantity.getText().toString()));
                     transactionList.get(getAdapterPosition()).setPrice(UHelper.parseDouble(price.getText().toString()));
                     transactionList.get(getAdapterPosition()).setAmount(UHelper.parseDouble(amount.getText().toString()));
+                    total = UHelper.parseDouble(amount.getText().toString());
                 }
 
                 @Override
@@ -147,6 +149,7 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
         holder.quantity.setText("");
         holder.price.setText("");
         holder.amount.setText("");
+        holder.note.setColorFilter(Color.BLACK);
     }
 
 

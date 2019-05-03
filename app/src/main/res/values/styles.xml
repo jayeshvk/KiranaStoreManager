@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -8,16 +8,28 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="DisabledCheckbox" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="DisabledCheckbox">
         <item name="android:buttonTint">@color/colorPrimary</item>
         <item name="android:textColor">@color/colorPrimary</item>
         <item name="android:enabled">false</item>
         <item name="android:textSize">10sp</item>
     </style>
 
-    <style name="Items" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="Items">
         <item name="android:textColor">@color/Black</item>
         <item name="android:textSize">14sp</item>
     </style>
+    <style name="EditTextItems">
+        <item name="android:textColor">@color/Black</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="ItemsHeader">
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="android:textColor">@color/Black</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
 
 </resources>

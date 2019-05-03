@@ -31,6 +31,7 @@
                 android:id="@+id/creditSales"
                 android:layout_width="128dp"
                 android:layout_height="128dp"
+                android:onClick="creditSales"
                 app:srcCompat="@drawable/ic_credit_sale" />
         </LinearLayout>
 
@@ -44,12 +45,14 @@
                 android:id="@+id/cashPurchase"
                 android:layout_width="128dp"
                 android:layout_height="128dp"
+                android:onClick="cashPurchase"
                 app:srcCompat="@drawable/ic_cashbuy" />
 
             <ImageButton
                 android:id="@+id/creditPurchase"
                 android:layout_width="128dp"
                 android:layout_height="128dp"
+                android:onClick="creditPurchase"
                 app:srcCompat="@drawable/ic_credpur" />
         </LinearLayout>
 

@@ -216,14 +216,15 @@ public class UHelper {
     }
 
     //added on 17-06-2018
-    public static String getTime(String time) {
+    public static String getTime(String t) {
         Date dt = new Date();
         SimpleDateFormat datetime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         SimpleDateFormat year = new SimpleDateFormat("yyyy");
         SimpleDateFormat month = new SimpleDateFormat("MMM");
         SimpleDateFormat date = new SimpleDateFormat("dd");
+        SimpleDateFormat time = new SimpleDateFormat("HH:mm:ss");
 
-        switch (time) {
+        switch (t) {
             case "d":
                 return date.format(dt.getTime());
             case "m":
@@ -232,10 +233,12 @@ public class UHelper {
                 return year.format(dt.getTime());
             case "dt":
                 return datetime.format(dt.getTime());
+            case "time":
+                return time.format(dt.getTime());
             default:
                 datetime.format(dt.getTime());
         }
-        return time;
+        return t;
     }
 
     public static String dateFormatdmyhmaToymdhms(String date) {
@@ -307,7 +310,7 @@ public class UHelper {
         return formatter.format(calendar.getTime());
     }
 
-    public static long ddmmyyyyTomili(String date) {
+    public static long ddmmyyyyHHmmTomili(String date) {
 
 //creates a formatter that parses the date in the given format
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm");
@@ -324,6 +327,32 @@ public class UHelper {
 
 //creates a formatter that parses the date in the given format
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy hh:mm a");
+        Date d = null;
+        try {
+            d = sdf.parse(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return d.getTime();
+    }
+
+    public static long ddmmyyyyhmsTomili(String date) {
+
+//creates a formatter that parses the date in the given format
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        Date d = null;
+        try {
+            d = sdf.parse(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return d.getTime();
+    }
+
+    public static long ddmmyyyyTomili(String date) {
+
+//creates a formatter that parses the date in the given format
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         Date d = null;
         try {
             d = sdf.parse(date);

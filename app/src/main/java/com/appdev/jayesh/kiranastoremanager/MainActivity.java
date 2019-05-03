@@ -48,9 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-
     }
-
 
     //Drawer Navigation Related Code*******************************************
     @Override
@@ -212,7 +210,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void cashSales(View view) {
-        startActivity(new Intent(MainActivity.this, CashSales.class));
+        Intent intent = new Intent(MainActivity.this, CashSales.class);
+        intent.putExtra(Constants.TRANSACTIONTYPES, Constants.CASHSALES);
+        intent.putExtra("title", "Cash Sales");
+        startActivity(intent);
 
+    }
+
+    public void creditSales(View view) {
+        Intent intent = new Intent(MainActivity.this, CreditSales.class);
+        intent.putExtra(Constants.TRANSACTIONTYPES, Constants.CREDITSALES);
+        intent.putExtra(Constants.TRANSACTIONTYPEREVERSE, Constants.CUSTOMERPAYMENTS);
+        intent.putExtra(Constants.ACCOUNTS, Constants.customer);
+        intent.putExtra(Constants.TITLE, "Credit Sales");
+        startActivity(intent);
+    }
+
+    public void cashPurchase(View view) {
+        Intent intent = new Intent(MainActivity.this, CashSales.class);
+        intent.putExtra(Constants.TRANSACTIONTYPES, Constants.CASHPURCHASE);
+        intent.putExtra(Constants.TITLE, "Cash Purchase");
+        startActivity(intent);
+
+    }
+
+    public void creditPurchase(View view) {
+        Intent intent = new Intent(MainActivity.this, CreditSales.class);
+        intent.putExtra(Constants.TRANSACTIONTYPES, Constants.CREDITPURCHASE);
+        intent.putExtra(Constants.TITLE, "Credit Purchase");
+        intent.putExtra(Constants.TRANSACTIONTYPEREVERSE, Constants.VENDORPAYMENTS);
+        intent.putExtra(Constants.ACCOUNTS, Constants.vendor);
+        startActivity(intent);
     }
 }
