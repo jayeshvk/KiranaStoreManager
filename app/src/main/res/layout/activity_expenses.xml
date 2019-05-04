@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -118,6 +117,14 @@
                 android:hint="Amount"
                 android:inputType="numberDecimal" />
 
+            <ImageView
+                android:id="@+id/note"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="0dp"
+                android:src="@drawable/ic_event_note_black_24dp" />
+
         </LinearLayout>
     </LinearLayout>
 
@@ -125,39 +132,14 @@
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_above="@+id/layoutButton"
         android:layout_below="@+id/layoutTop"
-        android:layout_above="@+id/layoutNote"
         android:layout_marginStart="5dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="5dp"
         android:scrollbars="vertical" />
 
 
-
-    <LinearLayout
-        android:id="@+id/layoutNote"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/layoutButton"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:srcCompat="@drawable/ic_event_note_black_24dp" />
-
-        <EditText
-            android:id="@+id/note"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Note"
-            android:inputType="textPersonName" />
-
-
-    </LinearLayout>
     <LinearLayout
         android:id="@+id/layoutButton"
         android:layout_width="match_parent"

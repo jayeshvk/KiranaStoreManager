@@ -2,19 +2,26 @@ package com.appdev.jayesh.kiranastoremanager;
 
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.appdev.jayesh.kiranastoremanager.Adapters.TransactionsRecyclerViewAdapter;
@@ -63,6 +70,11 @@ public class CashSales extends AppCompatActivity {
     String title;
     String transactionType;
 
+    EditText itemName, etQuantity, etPrice, etAmount;
+    ImageView etNote;
+    Double quantity, price;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,9 +103,16 @@ public class CashSales extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         dt = findViewById(R.id.date);
+        itemName = findViewById(R.id.itemName);
+        etQuantity = findViewById(R.id.quantity);
+        etPrice = findViewById(R.id.price);
+        etAmount = findViewById(R.id.amount);
+        etNote = findViewById(R.id.note);
 
         setDate();
         loadItemData();
+        setListeners();
+
     }
 
     private void initiateAccountingEntries() {
@@ -133,9 +152,110 @@ public class CashSales extends AppCompatActivity {
 
     }
 
+    private void setListeners() {
+        etQuantity.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                Double qty = UHelper.parseDouble(etQuantity.getText().toString());
+                Double prc = UHelper.parseDouble(etPrice.getText().toString());
+                etAmount.setText(String.format("%.2f", (qty * prc)));
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        etPrice.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                Double qty = UHelper.parseDouble(etQuantity.getText().toString());
+                Double prc = UHelper.parseDouble(etPrice.getText().toString());
+                etAmount.setText(String.format("%.2f", (qty * prc)));
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                System.out.println("Text after changed");
+
+            }
+        });
+        etAmount.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+        etNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder alert = new AlertDialog.Builder(v.getContext());
+                alert.setTitle("Notes");
+                alert.setIcon(R.drawable.ic_event_note_black_24dp);
+                final EditText input = new EditText(v.getContext());
+                if (etNote.getTag() != null)
+                    input.setText(etNote.getTag().toString());
+                alert.setView(input);
+                alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        String text = input.getText().toString();
+                        etNote.setTag(text);
+                        if (text.trim().length() > 0) {
+                            etNote.setColorFilter(Color.GREEN);
+                        } else
+                            etNote.setColorFilter(Color.BLACK);
+
+                    }
+                });
+                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                });
+                alert.show();
+            }
+        });
+    }
+
+    private void resetFreeTextView() {
+        itemName.setText(null);
+        etQuantity.setText(null);
+        etPrice.setText(null);
+        etAmount.setText(null);
+        etNote.setTag(null);
+        etNote.setColorFilter(Color.BLACK);
+
+
+        quantity = 0.0;
+        price = 0.0;
+    }
+
     public void save(View view) {
         initiateAccountingEntries();
+        saveListItems();
+        saveFreeItems();
+    }
 
+    private void saveListItems() {
         if (adapter.total <= 0)
             return;
 
@@ -175,8 +295,49 @@ public class CashSales extends AppCompatActivity {
                 toast("Failed to update, please enter again!");
             }
         });
+    }
 
+    private void saveFreeItems() {
+        if (UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0) {
+            Transaction t = new Transaction();
+            showProgressBar(true, "Please wait, Saving Data");
+            DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
+            String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
 
+            t.setItemName(itemName.getText().toString());
+            t.setTransactionType(transactionType);
+            t.setAccountName(transactionType);
+            t.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
+            t.setTimestamp(FieldValue.serverTimestamp());
+            t.setId(newDocument.getId());
+            if (etNote.getTag() != null)
+                t.setNotes(etNote.getTag().toString());
+            t.setQuantity(UHelper.parseDouble(etQuantity.getText().toString()));
+            t.setPrice(UHelper.parseDouble(etPrice.getText().toString()));
+            t.setAmount(UHelper.parseDouble(etAmount.getText().toString()));
+            t.setTimestamp(FieldValue.serverTimestamp());
+
+            //Update Postings for Days Sales
+            final Map<String, Object> data = new HashMap<>();
+            data.put(transactionType, FieldValue.increment(t.getAmount()));
+
+            newDocument.set(t).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    showProgressBar(false);
+                    toast(Constants.SUCCESS_MESSAGE);
+                    accountEntry.set(data, SetOptions.merge());
+                    resetFreeTextView();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    showProgressBar(false);
+                    toast(Constants.FAIL_MESSAGE);
+                    Log.d(TAG, e.toString());
+                }
+            });
+        }
     }
 
     private void setDate() {

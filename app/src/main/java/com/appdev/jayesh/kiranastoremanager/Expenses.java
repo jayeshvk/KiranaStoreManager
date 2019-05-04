@@ -2,9 +2,12 @@ package com.appdev.jayesh.kiranastoremanager;
 
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.appdev.jayesh.kiranastoremanager.Adapters.TransactionsRecyclerViewAdapter;
@@ -61,8 +65,8 @@ public class Expenses extends AppCompatActivity {
     int mMonth;
     int mDay;
 
-    EditText itemName, etQuantity, etPrice, etAmount, etNote;
-
+    EditText itemName, etQuantity, etPrice, etAmount;
+    ImageView etNote;
     Double quantity, price;
 
     boolean isAmountModified;
@@ -91,11 +95,7 @@ public class Expenses extends AppCompatActivity {
         pDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 
         dt = findViewById(R.id.date);
-        itemName = findViewById(R.id.itemName);
-        etQuantity = findViewById(R.id.quantity);
-        etPrice = findViewById(R.id.price);
-        etAmount = findViewById(R.id.amount);
-        etNote = findViewById(R.id.note);
+
 
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
@@ -139,6 +139,12 @@ public class Expenses extends AppCompatActivity {
     }
 
     private void setListeners() {
+        itemName = findViewById(R.id.itemName);
+        etQuantity = findViewById(R.id.quantity);
+        etPrice = findViewById(R.id.price);
+        etAmount = findViewById(R.id.amount);
+        etNote = findViewById(R.id.note);
+
         etQuantity.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -192,14 +198,44 @@ public class Expenses extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
         });
+        etNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder alert = new AlertDialog.Builder(v.getContext());
+                alert.setTitle("Notes");
+                alert.setIcon(R.drawable.ic_event_note_black_24dp);
+                final EditText input = new EditText(v.getContext());
+                if (etNote.getTag() != null)
+                    input.setText(etNote.getTag().toString());
+                alert.setView(input);
+                alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        String text = input.getText().toString();
+                        etNote.setTag(text);
+                        if (text.trim().length() > 0) {
+                            etNote.setColorFilter(Color.GREEN);
+                        } else
+                            etNote.setColorFilter(Color.BLACK);
+
+                    }
+                });
+                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                });
+                alert.show();
+            }
+        });
     }
 
-    private void resetView() {
+    private void resetFreeTextView() {
         itemName.setText(null);
         etQuantity.setText(null);
         etPrice.setText(null);
         etAmount.setText(null);
-        etNote.setText(null);
+        etNote.setTag(null);
+        etNote.setColorFilter(Color.BLACK);
+
 
         quantity = 0.0;
         price = 0.0;
@@ -214,9 +250,7 @@ public class Expenses extends AppCompatActivity {
     }
 
     public void save(View view) {
-
         initiateAccountingEntries();
-
         saveFreeItems();
         saveListItems();
 
@@ -277,7 +311,8 @@ public class Expenses extends AppCompatActivity {
             t.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
             t.setTimestamp(FieldValue.serverTimestamp());
             t.setId(newDocument.getId());
-            t.setNotes(etNote.getText().toString());
+            if (etNote.getTag() != null)
+                t.setNotes(etNote.getTag().toString());
             t.setQuantity(UHelper.parseDouble(etQuantity.getText().toString()));
             t.setPrice(UHelper.parseDouble(etPrice.getText().toString()));
             t.setAmount(UHelper.parseDouble(etAmount.getText().toString()));
@@ -293,7 +328,7 @@ public class Expenses extends AppCompatActivity {
                     showProgressBar(false);
                     toast(Constants.SUCCESS_MESSAGE);
                     accountEntry.set(data, SetOptions.merge());
-                    resetView();
+                    resetFreeTextView();
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override

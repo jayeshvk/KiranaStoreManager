@@ -250,4 +250,9 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
 
     }
+
+    public void banking(View view) {
+        Intent intent = new Intent(MainActivity.this, Banking.class);
+        startActivity(intent);
+    }
 }

@@ -69,6 +69,13 @@
                 android:onClick="expenses"
                 app:srcCompat="@drawable/ic_payments" />
 
+            <ImageButton
+                android:id="@+id/banking"
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:onClick="banking"
+                app:srcCompat="@drawable/ic_bank" />
+
         </LinearLayout>
     </LinearLayout>
 
