@@ -19,7 +19,6 @@ import android.widget.Toast;
 import com.appdev.jayesh.kiranastoremanager.Adapters.AccountsRecyclerViewAdapter;
 import com.appdev.jayesh.kiranastoremanager.Adapters.RecyclerTouchListener;
 import com.appdev.jayesh.kiranastoremanager.Model.Accounts;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -50,9 +49,6 @@ public class AccountsActivity extends AppCompatActivity {
     List<Accounts> accountsList = new ArrayList<>();
 
     private ProgressDialog pDialog;
-
-    String globalITemId = null;
-    int globalItemPosition = -1;
 
     AccountsRecyclerViewAdapter adapter = new AccountsRecyclerViewAdapter(accountsList);
 
@@ -101,27 +97,38 @@ public class AccountsActivity extends AppCompatActivity {
                         }
 
                         for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                            Accounts account = dc.getDocument().toObject(Accounts.class);
                             switch (dc.getType()) {
                                 case ADDED:
-                                    ObjectMapper mapper = new ObjectMapper();
-                                    Accounts account = mapper.convertValue(dc.getDocument().getData(), Accounts.class);
                                     accountsList.add(account);
                                     adapter.notifyDataSetChanged();
                                     resetView();
                                     break;
                                 case MODIFIED:
-                                    mapper = new ObjectMapper();
-                                    account = mapper.convertValue(dc.getDocument().getData(), Accounts.class);
-                                    accountsList.set(globalItemPosition, account);
+                                    if (accountMobile.getTag() != null) {
+                                        accountsList.set(UHelper.parseInt(accountMobile.getTag().toString()), account);
+                                    } else {
+                                        int p = -1;
+                                        for (int i = 0; i < accountsList.size(); i++) {
+                                            if (accountsList.get(i).getId().contains(account.getId()))
+                                                p = i;
+                                        }
+                                        accountsList.set(p, account);
+                                    }
                                     resetView();
                                     break;
                                 case REMOVED:
-                                    try {
-                                        toast("Item " + accountsList.get(globalItemPosition).getName() + " deleted successfully");
-                                    } catch (ArrayIndexOutOfBoundsException error) {
-                                        Log.d(TAG, error.toString());
+                                    if (accountMobile.getTag() != null) {
+                                        toast("Account " + accountsList.get(UHelper.parseInt(accountMobile.getTag().toString())).getName() + " deleted successfully");
+                                        accountsList.remove(UHelper.parseInt(accountMobile.getTag().toString()));
+                                    } else {
+                                        int p = -1;
+                                        for (int i = 0; i < accountsList.size(); i++) {
+                                            if (accountsList.get(i).getId().contains(account.getId()))
+                                                p = i;
+                                        }
+                                        accountsList.remove(p);
                                     }
-                                    accountsList.remove(globalItemPosition);
                                     resetView();
                                     break;
                             }
@@ -141,8 +148,8 @@ public class AccountsActivity extends AppCompatActivity {
                 customer.setChecked(account.isCustomer());
                 vendor.setChecked(account.isVendor());
 
-                globalITemId = account.getId();
-                globalItemPosition = position;
+                accountName.setTag(account.getId());
+                accountMobile.setTag(position);
             }
 
             @Override
@@ -165,14 +172,15 @@ public class AccountsActivity extends AppCompatActivity {
         accounts.setMobile(mobile);
         accounts.setCustomer(customerCB);
         accounts.setVendor(vendorCB);
-        accounts.setId(globalITemId);
+        if (accountName.getTag() != null)
+            accounts.setId(accountName.getTag().toString());
 
         if (name.length() == 0)
             return;
 
         //update account if item has been selected before
-        if (globalItemPosition != -1 && globalITemId != null) {
-            firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ACCOUNTS).document(globalITemId)
+        if (accountName.getTag() != null) {
+            firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ACCOUNTS).document(accountName.getTag().toString())
                     .set(accounts)
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
@@ -189,7 +197,6 @@ public class AccountsActivity extends AppCompatActivity {
                     });
             return;
         }
-
 
         // Add a new account with a generated ID
         DocumentReference documentAccount = firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ACCOUNTS).document();
@@ -210,8 +217,8 @@ public class AccountsActivity extends AppCompatActivity {
     }
 
     public void delete(View view) {
-        if (globalItemPosition != -1 && globalITemId != null) {
-            firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ACCOUNTS).document(globalITemId)
+        if (accountName.getTag() != null) {
+            firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ACCOUNTS).document(accountName.getTag().toString())
                     .delete()
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
@@ -229,8 +236,8 @@ public class AccountsActivity extends AppCompatActivity {
     }
 
     private void resetView() {
-        globalItemPosition = -1;
-        globalITemId = null;
+        accountName.setTag(null);
+        accountMobile.setTag(null);
 
         accountName.setText(null);
         accountMobile.setText(null);

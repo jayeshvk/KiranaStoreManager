@@ -29,7 +29,6 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
             cashPurchase = view.findViewById(R.id.cashPurchase);
             creditPurchase = view.findViewById(R.id.creditPurchase);
             expenses = view.findViewById(R.id.otherPayments);
-            System.out.println("Clicked on " + cashSale.isChecked());
 
         }
 

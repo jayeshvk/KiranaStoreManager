@@ -21,6 +21,8 @@ public class Constants {
     public static final String TITLE = "title";
     public static final String TIMESTAMP = "timestamp";
     public static final String TRANSACTIONTYPEREVERSE = "transactionTypeReverse";
+    public static final String SUCCESS_MESSAGE = "Saved Successfully";
+    public static final String FAIL_MESSAGE = "Could not save, try again!";
 
 
 }

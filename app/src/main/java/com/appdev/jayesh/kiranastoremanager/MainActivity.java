@@ -242,4 +242,12 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(Constants.ACCOUNTS, Constants.vendor);
         startActivity(intent);
     }
+
+    public void expenses(View view) {
+        Intent intent = new Intent(MainActivity.this, Expenses.class);
+        intent.putExtra(Constants.TRANSACTIONTYPES, Constants.EXPENSES);
+        intent.putExtra(Constants.TITLE, Constants.EXPENSES);
+        startActivity(intent);
+
+    }
 }

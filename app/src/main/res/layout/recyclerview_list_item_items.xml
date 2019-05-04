@@ -36,20 +36,20 @@
             android:text="Credit Sale" />
 
         <CheckBox
-            android:id="@+id/creditPurchase"
-            style="@style/DisabledCheckbox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Credit Purchase" />
-
-        <CheckBox
             android:id="@+id/cashPurchase"
             style="@style/DisabledCheckbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Cash Purchase" />
+
+        <CheckBox
+            android:id="@+id/creditPurchase"
+            style="@style/DisabledCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Credit Purchase" />
 
     </LinearLayout>
 
@@ -64,7 +64,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Other Payments" />
+            android:text="Expense" />
 
     </LinearLayout>
 </LinearLayout>

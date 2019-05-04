@@ -55,8 +55,6 @@ public class ItemsActivity extends AppCompatActivity {
     FirebaseAuth mAuth;
     FirebaseUser user;
     List<Items> itemsList = new ArrayList<>();
-    String globalITemId = null;
-    int globalItemPosition = -1;
     ItemRecyclerViewAdapter adapter = new ItemRecyclerViewAdapter(itemsList);
     private ProgressDialog pDialog;
 
@@ -108,28 +106,39 @@ public class ItemsActivity extends AppCompatActivity {
                         }
 
                         for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                            Items item = dc.getDocument().toObject(Items.class);
+
                             switch (dc.getType()) {
                                 case ADDED:
-                                    Items itemAdded = dc.getDocument().toObject(Items.class);
-                                    //itemAdded.setId(dc.getDocument().getId());
-                                    itemsList.add(itemAdded);
+                                    itemsList.add(item);
                                     adapter.notifyDataSetChanged();
                                     resetView();
                                     break;
                                 case MODIFIED:
-                                    Items itemModified = dc.getDocument().toObject(Items.class);
-                                    //itemModified.setId(dc.getDocument().getId());
-                                    itemsList.set(globalItemPosition, itemModified);
+                                    if (itemPrice.getTag() != null) {
+                                        itemsList.set(UHelper.parseInt(itemPrice.getTag().toString()), item);
+                                    } else {
+                                        int p = -1;
+                                        for (int i = 0; i < itemsList.size(); i++) {
+                                            if (itemsList.get(i).getId().contains(item.getId()))
+                                                p = i;
+                                        }
+                                        itemsList.set(p, item);
+                                    }
                                     resetView();
                                     break;
                                 case REMOVED:
-                                    try {
-                                        toast("Item " + itemsList.get(globalItemPosition).getName() + " deleted successfully");
-                                    } catch (ArrayIndexOutOfBoundsException error) {
-                                        Log.d(TAG, error.toString());
+                                    if (itemPrice.getTag() != null) {
+                                        toast("Item " + itemsList.get(UHelper.parseInt(itemPrice.getTag().toString())).getName() + " deleted successfully");
+                                        itemsList.remove(UHelper.parseInt(itemPrice.getTag().toString()));
+                                    } else {
+                                        int p = -1;
+                                        for (int i = 0; i < itemsList.size(); i++) {
+                                            if (itemsList.get(i).getId().contains(item.getId()))
+                                                p = i;
+                                        }
+                                        itemsList.remove(p);
                                     }
-                                    if (globalItemPosition != -1)
-                                        itemsList.remove(globalItemPosition);
                                     resetView();
                                     break;
                             }
@@ -141,8 +150,8 @@ public class ItemsActivity extends AppCompatActivity {
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
             public void onClick(View view, int position) {
-                Items item = itemsList.get(position);
 
+                Items item = itemsList.get(position);
                 itemName.setText(item.getName());
                 itemPrice.setText(item.getPrice() + "");
                 itemCost.setText(item.getCost() + "");
@@ -152,8 +161,8 @@ public class ItemsActivity extends AppCompatActivity {
                 creditPurchase.setChecked(item.getUsedFor().get(Constants.CREDITPURCHASE));
                 expenses.setChecked(item.getUsedFor().get(Constants.EXPENSES));
 
-                globalITemId = item.getId();
-                globalItemPosition = position;
+                itemName.setTag(item.getId());
+                itemPrice.setTag(position);
             }
 
             @Override
@@ -164,6 +173,7 @@ public class ItemsActivity extends AppCompatActivity {
     }
 
     public void save(View view) {
+
         String name = itemName.getText().toString();
         String price = itemPrice.getText().toString();
         String cost = itemCost.getText().toString();
@@ -173,7 +183,8 @@ public class ItemsActivity extends AppCompatActivity {
         item.setName(name);
         item.setPrice(UHelper.parseDouble(price));
         item.setCost(UHelper.parseDouble(cost));
-        item.setId(globalITemId);
+        if (itemName.getTag() != null)
+            item.setId(itemName.getTag().toString());
         usedFor.put(Constants.CASHSALES, cashSale.isChecked());
         usedFor.put(Constants.CREDITSALES, creditSale.isChecked());
         usedFor.put(Constants.CASHPURCHASE, cashPurchase.isChecked());
@@ -185,8 +196,9 @@ public class ItemsActivity extends AppCompatActivity {
             return;
 
         //update item if item has been selected before
-        if (globalItemPosition != -1 && globalITemId != null) {
-            firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ITEMS).document(globalITemId)
+        //if (globalItemPosition != -1 && globalITemId != null) {
+        if (itemName.getTag() != null) {
+            firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ITEMS).document(itemName.getTag().toString())
                     .set(item)
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
@@ -225,8 +237,10 @@ public class ItemsActivity extends AppCompatActivity {
     }
 
     public void delete(View view) {
-        if (globalItemPosition != -1 && globalITemId != null) {
-            firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS).document(globalITemId)
+        //  if (globalItemPosition != -1 && globalITemId != null) {
+        if (itemName.getTag() != null) {
+            String[] values = itemName.getTag().toString().split("-", 2);
+            firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS).document(itemName.getTag().toString())
                     .delete()
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
@@ -244,8 +258,8 @@ public class ItemsActivity extends AppCompatActivity {
     }
 
     private void resetView() {
-        globalItemPosition = -1;
-        globalITemId = null;
+        itemName.setTag(null);
+        itemPrice.setTag(null);
 
         itemName.setText(null);
         itemPrice.setText(null);

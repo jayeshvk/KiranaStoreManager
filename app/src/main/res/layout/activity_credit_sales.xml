@@ -117,14 +117,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="save"
-                android:text="Save Credit Sales" />
+                android:text="Save" />
 
             <Button
                 android:id="@+id/saveCreditReceived"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="save"
-                android:text="Save Credit Received" />
+                android:text="Save Payments" />
 
         </LinearLayout>
     </RelativeLayout>

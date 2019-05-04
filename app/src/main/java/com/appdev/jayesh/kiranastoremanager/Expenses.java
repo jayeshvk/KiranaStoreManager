@@ -9,6 +9,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,14 +42,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CashSales extends AppCompatActivity {
+public class Expenses extends AppCompatActivity {
 
-    private static final String TAG = "CashSales";
+    private static final String TAG = Constants.EXPENSES;
 
     FirebaseAuth mAuth;
     FirebaseUser user;
     FirebaseFirestore firebaseFirestore;
-
     List<Transaction> transactionList = new ArrayList<>();
     TransactionsRecyclerViewAdapter adapter = new TransactionsRecyclerViewAdapter(transactionList);
     RecyclerView recyclerView;
@@ -54,11 +56,16 @@ public class CashSales extends AppCompatActivity {
 
     private ProgressDialog pDialog;
 
-
     EditText dt;
     int mYear;
     int mMonth;
     int mDay;
+
+    EditText itemName, etQuantity, etPrice, etAmount, etNote;
+
+    Double quantity, price;
+
+    boolean isAmountModified;
 
     String title;
     String transactionType;
@@ -66,7 +73,7 @@ public class CashSales extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_cash_sales);
+        setContentView(R.layout.activity_expenses);
         Intent intent = getIntent();
         title = intent.getStringExtra(Constants.TITLE);
         transactionType = intent.getStringExtra(Constants.TRANSACTIONTYPES);
@@ -83,24 +90,22 @@ public class CashSales extends AppCompatActivity {
         pDialog.setCancelable(false);
         pDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 
+        dt = findViewById(R.id.date);
+        itemName = findViewById(R.id.itemName);
+        etQuantity = findViewById(R.id.quantity);
+        etPrice = findViewById(R.id.price);
+        etAmount = findViewById(R.id.amount);
+        etNote = findViewById(R.id.note);
 
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(CashSales.this));
+        recyclerView.setLayoutManager(new LinearLayoutManager(Expenses.this));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         recyclerView.setAdapter(adapter);
 
-        dt = findViewById(R.id.date);
-
         setDate();
         loadItemData();
-    }
-
-    private void initiateAccountingEntries() {
-        accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
-        Map<String, Object> fsDate = new HashMap<>();
-        fsDate.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
-        accountEntry.set(fsDate, SetOptions.merge());
+        setListeners();
 
     }
 
@@ -133,9 +138,91 @@ public class CashSales extends AppCompatActivity {
 
     }
 
+    private void setListeners() {
+        etQuantity.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                Double qty = UHelper.parseDouble(etQuantity.getText().toString());
+                Double prc = UHelper.parseDouble(etPrice.getText().toString());
+                etAmount.setText(String.format("%.2f", (qty * prc)));
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        etPrice.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                Double qty = UHelper.parseDouble(etQuantity.getText().toString());
+                Double prc = UHelper.parseDouble(etPrice.getText().toString());
+                etAmount.setText(String.format("%.2f", (qty * prc)));
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                System.out.println("Text after changed");
+
+            }
+        });
+        etAmount.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+    }
+
+    private void resetView() {
+        itemName.setText(null);
+        etQuantity.setText(null);
+        etPrice.setText(null);
+        etAmount.setText(null);
+        etNote.setText(null);
+
+        quantity = 0.0;
+        price = 0.0;
+    }
+
+    private void initiateAccountingEntries() {
+        accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
+        Map<String, Object> fsDate = new HashMap<>();
+        fsDate.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
+        accountEntry.set(fsDate, SetOptions.merge());
+
+    }
+
     public void save(View view) {
+
         initiateAccountingEntries();
 
+        saveFreeItems();
+        saveListItems();
+
+    }
+
+    private void saveListItems() {
         if (adapter.total <= 0)
             return;
 
@@ -175,8 +262,48 @@ public class CashSales extends AppCompatActivity {
                 toast("Failed to update, please enter again!");
             }
         });
+    }
 
+    private void saveFreeItems() {
+        if (UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0) {
+            Transaction t = new Transaction();
+            showProgressBar(true, "Please wait, Saving Data");
+            DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
+            String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
 
+            t.setItemName(itemName.getText().toString());
+            t.setTransactionType(transactionType);
+            t.setAccountName(transactionType);
+            t.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
+            t.setTimestamp(FieldValue.serverTimestamp());
+            t.setId(newDocument.getId());
+            t.setNotes(etNote.getText().toString());
+            t.setQuantity(UHelper.parseDouble(etQuantity.getText().toString()));
+            t.setPrice(UHelper.parseDouble(etPrice.getText().toString()));
+            t.setAmount(UHelper.parseDouble(etAmount.getText().toString()));
+            t.setTimestamp(FieldValue.serverTimestamp());
+
+            //Update Postings for Days Sales
+            final Map<String, Object> data = new HashMap<>();
+            data.put(transactionType, FieldValue.increment(t.getAmount()));
+
+            newDocument.set(t).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    showProgressBar(false);
+                    toast(Constants.SUCCESS_MESSAGE);
+                    accountEntry.set(data, SetOptions.merge());
+                    resetView();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    showProgressBar(false);
+                    toast(Constants.FAIL_MESSAGE);
+                    Log.d(TAG, e.toString());
+                }
+            });
+        }
     }
 
     private void setDate() {
