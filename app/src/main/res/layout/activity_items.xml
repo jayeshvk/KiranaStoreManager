@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     tools:context=".ItemsActivity">
 
@@ -38,21 +37,21 @@
 
         <CheckBox
             android:id="@+id/cashSale"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Cash Sale" />
 
         <CheckBox
             android:id="@+id/creditSale"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Credit Sale" />
 
         <CheckBox
             android:id="@+id/otherPayments"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Expenses" />
@@ -65,17 +64,24 @@
 
         <CheckBox
             android:id="@+id/cashPurchase"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Cash Purchase" />
 
         <CheckBox
             android:id="@+id/creditPurchase"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Credit Purchase" />
+
+        <CheckBox
+            android:id="@+id/financeItem"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Finance Item" />
 
 
     </LinearLayout>

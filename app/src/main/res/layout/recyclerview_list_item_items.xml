@@ -22,7 +22,7 @@
         <CheckBox
             android:id="@+id/cashSale"
             style="@style/DisabledCheckbox"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Cash Sale" />
@@ -30,7 +30,7 @@
         <CheckBox
             android:id="@+id/creditSale"
             style="@style/DisabledCheckbox"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Credit Sale" />
@@ -38,18 +38,11 @@
         <CheckBox
             android:id="@+id/cashPurchase"
             style="@style/DisabledCheckbox"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Cash Purchase" />
 
-        <CheckBox
-            android:id="@+id/creditPurchase"
-            style="@style/DisabledCheckbox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Credit Purchase" />
 
     </LinearLayout>
 
@@ -59,12 +52,28 @@
         android:orientation="horizontal">
 
         <CheckBox
+            android:id="@+id/creditPurchase"
+            style="@style/DisabledCheckbox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Credit Purchase" />
+
+        <CheckBox
             android:id="@+id/otherPayments"
             style="@style/DisabledCheckbox"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Expense" />
+
+        <CheckBox
+            android:id="@+id/financeItem"
+            style="@style/DisabledCheckbox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Finance Item" />
 
     </LinearLayout>
 </LinearLayout>

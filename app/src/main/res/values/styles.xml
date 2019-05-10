@@ -19,6 +19,7 @@
         <item name="android:textColor">@color/Black</item>
         <item name="android:textSize">14sp</item>
     </style>
+
     <style name="EditTextItems">
         <item name="android:textColor">@color/Black</item>
         <item name="android:textSize">14sp</item>
@@ -31,5 +32,8 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <style name="DateReportItem">
+        <item name="android:textSize">10sp</item>
+    </style>
 
 </resources>

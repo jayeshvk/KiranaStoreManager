@@ -34,6 +34,7 @@ public class AccountsRecyclerViewAdapter extends RecyclerView.Adapter<AccountsRe
         holder.name.setText(account.getName());
         holder.customer.setChecked(account.isCustomer());
         holder.vendor.setChecked(account.isVendor());
+        holder.lender.setChecked(account.isLender());
 
     }
 
@@ -44,13 +45,14 @@ public class AccountsRecyclerViewAdapter extends RecyclerView.Adapter<AccountsRe
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView name;
-        public CheckBox customer, vendor;
+        public CheckBox customer, vendor, lender;
 
         public MyViewHolder(View view) {
             super(view);
             name = view.findViewById(R.id.name);
             customer = view.findViewById(R.id.customer);
             vendor = view.findViewById(R.id.vendor);
+            lender = view.findViewById(R.id.lender);
         }
 
     }

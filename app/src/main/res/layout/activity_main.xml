@@ -76,6 +76,14 @@
                 android:onClick="banking"
                 app:srcCompat="@drawable/ic_bank" />
 
+            <ImageButton
+                android:id="@+id/financeItem"
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:layout_weight="1"
+                android:onClick="loan"
+                app:srcCompat="@drawable/ic_money_bag" />
+
         </LinearLayout>
     </LinearLayout>
 

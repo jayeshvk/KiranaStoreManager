@@ -26,8 +26,9 @@
 
             <EditText
                 android:id="@+id/date"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:editable="false"
                 android:focusable="false"
                 android:hint="DD-MM-YYYY"
@@ -35,6 +36,14 @@
                 android:onClick="datePicker"
                 android:textColor="#304FFE"
                 android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/summary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:onClick="summary"
+                android:src="@drawable/ic_timeline_black_24dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -166,14 +175,14 @@
                 android:id="@+id/saveSales"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="save"
+                android:onClick="saveButton"
                 android:text="Save" />
 
             <Button
-                android:id="@+id/saveCreditReceived"
+                android:id="@+id/savePayments"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="save"
+                android:onClick="savePaymentsButton"
                 android:text="Save Payments" />
 
         </LinearLayout>

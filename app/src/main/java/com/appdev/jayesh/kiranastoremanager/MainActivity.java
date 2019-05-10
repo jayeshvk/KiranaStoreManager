@@ -211,7 +211,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void cashSales(View view) {
         Intent intent = new Intent(MainActivity.this, CashSales.class);
-        intent.putExtra(Constants.TRANSACTIONTYPES, Constants.CASHSALES);
+        intent.putExtra(Constants.TRANSACTIONTYPE, Constants.CASHSALES);
+        intent.putExtra(Constants.SIGN, 1);
         intent.putExtra("title", "Cash Sales");
         startActivity(intent);
 
@@ -219,40 +220,55 @@ public class MainActivity extends AppCompatActivity {
 
     public void creditSales(View view) {
         Intent intent = new Intent(MainActivity.this, CreditSales.class);
-        intent.putExtra(Constants.TRANSACTIONTYPES, Constants.CREDITSALES);
+        intent.putExtra(Constants.TRANSACTIONTYPE, Constants.CREDITSALES);
         intent.putExtra(Constants.TRANSACTIONTYPEREVERSE, Constants.CUSTOMERPAYMENTS);
         intent.putExtra(Constants.ACCOUNTS, Constants.customer);
+        intent.putExtra(Constants.SIGN, -1);
         intent.putExtra(Constants.TITLE, "Credit Sales");
         startActivity(intent);
     }
 
     public void cashPurchase(View view) {
         Intent intent = new Intent(MainActivity.this, CashSales.class);
-        intent.putExtra(Constants.TRANSACTIONTYPES, Constants.CASHPURCHASE);
+        intent.putExtra(Constants.TRANSACTIONTYPE, Constants.CASHPURCHASE);
         intent.putExtra(Constants.TITLE, "Cash Purchase");
+        intent.putExtra(Constants.SIGN, -1);
         startActivity(intent);
 
+    }
+
+    public void expenses(View view) {
+        Intent intent = new Intent(MainActivity.this, CashSales.class);
+        intent.putExtra(Constants.TRANSACTIONTYPE, Constants.EXPENSES);
+        intent.putExtra(Constants.TITLE, Constants.EXPENSES);
+        intent.putExtra(Constants.SIGN, -1);
+
+        startActivity(intent);
     }
 
     public void creditPurchase(View view) {
         Intent intent = new Intent(MainActivity.this, CreditSales.class);
-        intent.putExtra(Constants.TRANSACTIONTYPES, Constants.CREDITPURCHASE);
+        intent.putExtra(Constants.TRANSACTIONTYPE, Constants.CREDITPURCHASE);
         intent.putExtra(Constants.TITLE, "Credit Purchase");
         intent.putExtra(Constants.TRANSACTIONTYPEREVERSE, Constants.VENDORPAYMENTS);
         intent.putExtra(Constants.ACCOUNTS, Constants.vendor);
+        intent.putExtra(Constants.SIGN, 1);
+
         startActivity(intent);
     }
 
-    public void expenses(View view) {
-        Intent intent = new Intent(MainActivity.this, Expenses.class);
-        intent.putExtra(Constants.TRANSACTIONTYPES, Constants.EXPENSES);
-        intent.putExtra(Constants.TITLE, Constants.EXPENSES);
-        startActivity(intent);
-
-    }
 
     public void banking(View view) {
         Intent intent = new Intent(MainActivity.this, Banking.class);
+        startActivity(intent);
+    }
+
+    public void loan(View view) {
+        Intent intent = new Intent(MainActivity.this, CreditSales.class);
+        intent.putExtra(Constants.TRANSACTIONTYPE, Constants.LOAN);
+        intent.putExtra(Constants.TRANSACTIONTYPEREVERSE, Constants.LOANPAYMENT);
+        intent.putExtra(Constants.ACCOUNTS, Constants.lender);
+        intent.putExtra(Constants.TITLE, "Loan Management");
         startActivity(intent);
     }
 }

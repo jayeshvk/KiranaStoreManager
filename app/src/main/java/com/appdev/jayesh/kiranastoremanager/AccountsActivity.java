@@ -41,7 +41,7 @@ public class AccountsActivity extends AppCompatActivity {
     private static final String TAG = "ItemsActivity";
     EditText accountName;
     EditText accountMobile;
-    CheckBox customer, vendor;
+    CheckBox customer, vendor, lender;
 
     FirebaseFirestore firebaseFirestore;
     FirebaseAuth mAuth;
@@ -63,6 +63,7 @@ public class AccountsActivity extends AppCompatActivity {
         accountMobile = findViewById(R.id.accountMobile);
         customer = findViewById(R.id.customer);
         vendor = findViewById(R.id.vendor);
+        lender = findViewById(R.id.lender);
 
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Please wait...");
@@ -78,7 +79,6 @@ public class AccountsActivity extends AppCompatActivity {
     }
 
     private void loadAccountsFromFireStore() {
-
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(AccountsActivity.this));
@@ -147,6 +147,7 @@ public class AccountsActivity extends AppCompatActivity {
                 accountMobile.setText(account.getMobile() + "");
                 customer.setChecked(account.isCustomer());
                 vendor.setChecked(account.isVendor());
+                lender.setChecked(account.isLender());
 
                 accountName.setTag(account.getId());
                 accountMobile.setTag(position);
@@ -162,16 +163,15 @@ public class AccountsActivity extends AppCompatActivity {
     public void save(View view) {
         String name = accountName.getText().toString();
         String mobile = accountMobile.getText().toString();
-        boolean customerCB = customer.isChecked();
-        boolean vendorCB = vendor.isChecked();
 
         final Accounts accounts = new Accounts();
         accounts.setName(name);
         if (mobile == null)
             mobile = "";
         accounts.setMobile(mobile);
-        accounts.setCustomer(customerCB);
-        accounts.setVendor(vendorCB);
+        accounts.setCustomer(customer.isChecked());
+        accounts.setVendor(vendor.isChecked());
+        accounts.setLender(lender.isChecked());
         if (accountName.getTag() != null)
             accounts.setId(accountName.getTag().toString());
 
@@ -181,7 +181,7 @@ public class AccountsActivity extends AppCompatActivity {
         //update account if item has been selected before
         if (accountName.getTag() != null) {
             firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ACCOUNTS).document(accountName.getTag().toString())
-                    .set(accounts)
+                    .set(accounts,SetOptions.merge())
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
@@ -243,6 +243,7 @@ public class AccountsActivity extends AppCompatActivity {
         accountMobile.setText(null);
         customer.setChecked(false);
         vendor.setChecked(false);
+        lender.setChecked(false);
 
         adapter.notifyDataSetChanged();
     }

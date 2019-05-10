@@ -19,7 +19,7 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView name;
-        private CheckBox cashSale, creditSale, cashPurchase, creditPurchase, expenses;
+        private CheckBox cashSale, creditSale, cashPurchase, creditPurchase, expenses, financeItem;
 
         MyViewHolder(View view) {
             super(view);
@@ -29,6 +29,7 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
             cashPurchase = view.findViewById(R.id.cashPurchase);
             creditPurchase = view.findViewById(R.id.creditPurchase);
             expenses = view.findViewById(R.id.otherPayments);
+            financeItem = view.findViewById(R.id.financeItem);
 
         }
 
@@ -56,6 +57,7 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
             holder.cashPurchase.setChecked(item.getUsedFor().get(Constants.CASHPURCHASE));
             holder.creditPurchase.setChecked(item.getUsedFor().get(Constants.CREDITPURCHASE));
             holder.expenses.setChecked(item.getUsedFor().get(Constants.EXPENSES));
+            holder.financeItem.setChecked(item.getUsedFor().get(Constants.FINANCEITEM));
         }
     }
 

@@ -189,12 +189,11 @@ public class Banking extends AppCompatActivity {
             dTransaction.setTransactionType(Constants.DEPOSIT);
             dTransaction.setAccountName(Constants.DEPOSIT);
             dTransaction.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
-            dTransaction.setTimestamp(FieldValue.serverTimestamp());
             dTransaction.setId(depositDocument.getId());
             if (dComment.length() > 0)
                 dTransaction.setNotes(dComment);
             dTransaction.setAmount(UHelper.parseDouble(dAmount));
-            dTransaction.setTimestamp(FieldValue.serverTimestamp());
+            dTransaction.setTimestamp(System.currentTimeMillis());
 
             //Update Postings for Days Sales
             final Map<String, Object> data = new HashMap<>();
@@ -212,12 +211,11 @@ public class Banking extends AppCompatActivity {
             wTransaction.setTransactionType(Constants.WITHDRAWL);
             wTransaction.setAccountName(Constants.WITHDRAWL);
             wTransaction.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
-            wTransaction.setTimestamp(FieldValue.serverTimestamp());
             wTransaction.setId(withdrawlDocument.getId());
             if (wComment.length() > 0)
                 wTransaction.setNotes(wComment);
             wTransaction.setAmount(UHelper.parseDouble(wAmount));
-            wTransaction.setTimestamp(FieldValue.serverTimestamp());
+            wTransaction.setTimestamp(System.currentTimeMillis());
 
             //Update Postings for Days Sales
             final Map<String, Object> data = new HashMap<>();

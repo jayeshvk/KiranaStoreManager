@@ -9,6 +9,16 @@ public class Accounts {
     private String id;
     private boolean vendor;
 
+    public boolean isLender() {
+        return lender;
+    }
+
+    public void setLender(boolean lender) {
+        this.lender = lender;
+    }
+
+    private boolean lender;
+
     public Accounts() {
     }
 

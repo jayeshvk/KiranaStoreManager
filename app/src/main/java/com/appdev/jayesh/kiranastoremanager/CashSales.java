@@ -57,7 +57,7 @@ public class CashSales extends AppCompatActivity {
     List<Transaction> transactionList = new ArrayList<>();
     TransactionsRecyclerViewAdapter adapter = new TransactionsRecyclerViewAdapter(transactionList);
     RecyclerView recyclerView;
-    DocumentReference accountEntry, documentReference;
+    DocumentReference documentReference;
 
     private ProgressDialog pDialog;
 
@@ -73,6 +73,7 @@ public class CashSales extends AppCompatActivity {
     EditText itemName, etQuantity, etPrice, etAmount;
     ImageView etNote;
     Double quantity, price;
+    int sign;
 
 
     @Override
@@ -81,8 +82,9 @@ public class CashSales extends AppCompatActivity {
         setContentView(R.layout.activity_cash_sales);
         Intent intent = getIntent();
         title = intent.getStringExtra(Constants.TITLE);
-        transactionType = intent.getStringExtra(Constants.TRANSACTIONTYPES);
-
+        transactionType = intent.getStringExtra(Constants.TRANSACTIONTYPE);
+        sign = intent.getIntExtra(Constants.SIGN, 1);
+        System.out.println(sign);
         this.setTitle(title);
 
         mAuth = FirebaseAuth.getInstance();
@@ -116,10 +118,12 @@ public class CashSales extends AppCompatActivity {
     }
 
     private void initiateAccountingEntries() {
+/*
         accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
         Map<String, Object> fsDate = new HashMap<>();
         fsDate.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
         accountEntry.set(fsDate, SetOptions.merge());
+*/
 
     }
 
@@ -250,7 +254,7 @@ public class CashSales extends AppCompatActivity {
     }
 
     public void save(View view) {
-        initiateAccountingEntries();
+        //initiateAccountingEntries();
         saveListItems();
         saveFreeItems();
     }
@@ -265,16 +269,20 @@ public class CashSales extends AppCompatActivity {
             if (t.getAmount() > 0) {
                 showProgressBar(true, "Please wait, Saving Data");
                 DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
-
+                double temp = t.getAmount() * sign;
+                System.out.println(temp);
+                t.setAmount(temp);
                 t.setTransactionType(transactionType);
                 t.setAccountName(transactionType);
                 String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
                 t.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
-                t.setTimestamp(FieldValue.serverTimestamp());
+                t.setTimestamp(System.currentTimeMillis());
                 t.setId(newDocument.getId());
                 //Update Postings for Days Sales
+                DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
                 Map<String, Object> data = new HashMap<>();
                 data.put(transactionType, FieldValue.increment(t.getAmount()));
+                data.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
 
                 batch.set(newDocument, t);
                 batch.set(accountEntry, data, SetOptions.merge());
@@ -298,35 +306,39 @@ public class CashSales extends AppCompatActivity {
     }
 
     private void saveFreeItems() {
-        if (UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0) {
+
+        if (UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().trim().length() > 0) {
             Transaction t = new Transaction();
             showProgressBar(true, "Please wait, Saving Data");
             DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
             String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
-
             t.setItemName(itemName.getText().toString());
             t.setTransactionType(transactionType);
             t.setAccountName(transactionType);
             t.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
-            t.setTimestamp(FieldValue.serverTimestamp());
             t.setId(newDocument.getId());
             if (etNote.getTag() != null)
                 t.setNotes(etNote.getTag().toString());
             t.setQuantity(UHelper.parseDouble(etQuantity.getText().toString()));
             t.setPrice(UHelper.parseDouble(etPrice.getText().toString()));
-            t.setAmount(UHelper.parseDouble(etAmount.getText().toString()));
-            t.setTimestamp(FieldValue.serverTimestamp());
+            t.setAmount(UHelper.parseDouble(etAmount.getText().toString()) * sign);
+            t.setTimestamp(System.currentTimeMillis());
 
-            //Update Postings for Days Sales
+            final DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
             final Map<String, Object> data = new HashMap<>();
             data.put(transactionType, FieldValue.increment(t.getAmount()));
+            data.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
 
-            newDocument.set(t).addOnSuccessListener(new OnSuccessListener<Void>() {
+
+            WriteBatch batch = firebaseFirestore.batch();
+            batch.set(newDocument, t);
+            batch.set(accountEntry, data, SetOptions.merge());
+
+            batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
                     showProgressBar(false);
                     toast(Constants.SUCCESS_MESSAGE);
-                    accountEntry.set(data, SetOptions.merge());
                     resetFreeTextView();
                 }
             }).addOnFailureListener(new OnFailureListener() {

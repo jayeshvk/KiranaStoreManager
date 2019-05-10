@@ -80,7 +80,7 @@ public class Expenses extends AppCompatActivity {
         setContentView(R.layout.activity_expenses);
         Intent intent = getIntent();
         title = intent.getStringExtra(Constants.TITLE);
-        transactionType = intent.getStringExtra(Constants.TRANSACTIONTYPES);
+        transactionType = intent.getStringExtra(Constants.TRANSACTIONTYPE);
 
         this.setTitle(title);
 
@@ -271,7 +271,7 @@ public class Expenses extends AppCompatActivity {
                 t.setAccountName(transactionType);
                 String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
                 t.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
-                t.setTimestamp(FieldValue.serverTimestamp());
+                t.setTimestamp(System.currentTimeMillis());
                 t.setId(newDocument.getId());
                 //Update Postings for Days Sales
                 Map<String, Object> data = new HashMap<>();
@@ -309,14 +309,13 @@ public class Expenses extends AppCompatActivity {
             t.setTransactionType(transactionType);
             t.setAccountName(transactionType);
             t.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
-            t.setTimestamp(FieldValue.serverTimestamp());
             t.setId(newDocument.getId());
             if (etNote.getTag() != null)
                 t.setNotes(etNote.getTag().toString());
             t.setQuantity(UHelper.parseDouble(etQuantity.getText().toString()));
             t.setPrice(UHelper.parseDouble(etPrice.getText().toString()));
             t.setAmount(UHelper.parseDouble(etAmount.getText().toString()));
-            t.setTimestamp(FieldValue.serverTimestamp());
+            t.setTimestamp(System.currentTimeMillis());
 
             //Update Postings for Days Sales
             final Map<String, Object> data = new HashMap<>();

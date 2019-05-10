@@ -49,6 +49,7 @@ public class ItemsActivity extends AppCompatActivity {
     CheckBox cashPurchase;
     CheckBox creditPurchase;
     CheckBox expenses;
+    CheckBox financeItem;
 
 
     FirebaseFirestore firebaseFirestore;
@@ -72,6 +73,7 @@ public class ItemsActivity extends AppCompatActivity {
         cashPurchase = findViewById(R.id.cashPurchase);
         creditPurchase = findViewById(R.id.creditPurchase);
         expenses = findViewById(R.id.otherPayments);
+        financeItem = findViewById(R.id.financeItem);
 
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Please wait...");
@@ -82,6 +84,8 @@ public class ItemsActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
         loadItemsFromFireStore();
+
+        System.out.println("hello");
 
 
     }
@@ -160,6 +164,7 @@ public class ItemsActivity extends AppCompatActivity {
                 cashPurchase.setChecked(item.getUsedFor().get(Constants.CASHPURCHASE));
                 creditPurchase.setChecked(item.getUsedFor().get(Constants.CREDITPURCHASE));
                 expenses.setChecked(item.getUsedFor().get(Constants.EXPENSES));
+                financeItem.setChecked(item.getUsedFor().get(Constants.FINANCEITEM));
 
                 itemName.setTag(item.getId());
                 itemPrice.setTag(position);
@@ -190,6 +195,7 @@ public class ItemsActivity extends AppCompatActivity {
         usedFor.put(Constants.CASHPURCHASE, cashPurchase.isChecked());
         usedFor.put(Constants.CREDITPURCHASE, creditPurchase.isChecked());
         usedFor.put(Constants.EXPENSES, expenses.isChecked());
+        usedFor.put(Constants.FINANCEITEM, financeItem.isChecked());
         item.setUsedFor(usedFor);
 
         if (name.length() == 0)
@@ -199,7 +205,7 @@ public class ItemsActivity extends AppCompatActivity {
         //if (globalItemPosition != -1 && globalITemId != null) {
         if (itemName.getTag() != null) {
             firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ITEMS).document(itemName.getTag().toString())
-                    .set(item)
+                    .set(item, SetOptions.merge())
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
@@ -270,6 +276,7 @@ public class ItemsActivity extends AppCompatActivity {
         cashPurchase.setChecked(false);
         creditPurchase.setChecked(false);
         expenses.setChecked(false);
+        financeItem.setChecked(false);
 
         adapter.notifyDataSetChanged();
     }

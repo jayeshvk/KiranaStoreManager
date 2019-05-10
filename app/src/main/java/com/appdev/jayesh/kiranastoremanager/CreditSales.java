@@ -17,7 +17,6 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -29,11 +28,14 @@ import com.appdev.jayesh.kiranastoremanager.Adapters.TransactionsRecyclerViewAda
 import com.appdev.jayesh.kiranastoremanager.Model.Accounts;
 import com.appdev.jayesh.kiranastoremanager.Model.Items;
 import com.appdev.jayesh.kiranastoremanager.Model.Transaction;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -52,7 +54,6 @@ public class CreditSales extends AppCompatActivity {
 
     private static final String TAG = "CreditSales";
 
-
     FirebaseAuth mAuth;
     FirebaseUser user;
     FirebaseFirestore firebaseFirestore;
@@ -60,7 +61,7 @@ public class CreditSales extends AppCompatActivity {
     List<Transaction> transactionList = new ArrayList<>();
 
     private ProgressDialog pDialog;
-    TransactionsRecyclerViewAdapter adapter = new TransactionsRecyclerViewAdapter(transactionList);
+    TransactionsRecyclerViewAdapter adapter;
 
     RecyclerView recyclerView;
 
@@ -83,16 +84,20 @@ public class CreditSales extends AppCompatActivity {
     ImageView etNote;
     Double quantity, price;
 
+    WriteBatch batch;
+
+    int sign;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_credit_sales);
         Intent intent = getIntent();
         title = intent.getStringExtra(Constants.TITLE);
-        transactionType = intent.getStringExtra(Constants.TRANSACTIONTYPES);
+        transactionType = intent.getStringExtra(Constants.TRANSACTIONTYPE);
         account = intent.getStringExtra(Constants.ACCOUNTS);
         transactionTypeReverse = intent.getStringExtra(Constants.TRANSACTIONTYPEREVERSE);
-
+        sign = intent.getIntExtra(Constants.SIGN, 1);
         this.setTitle(title);
 
         dt = findViewById(R.id.date);
@@ -100,13 +105,14 @@ public class CreditSales extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
         firebaseFirestore = FirebaseFirestore.getInstance();
-        documentReference = firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid());
+        documentReference = firebaseFirestore.collection(Constants.USERS).document(user.getUid());
 
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Please wait...");
         pDialog.setCancelable(false);
         pDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 
+        adapter = new TransactionsRecyclerViewAdapter(transactionList);
 
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
@@ -122,8 +128,6 @@ public class CreditSales extends AppCompatActivity {
         loadAccountData();
         loadItemData();
         setListeners();
-
-
     }
 
     private void setDate() {
@@ -164,36 +168,29 @@ public class CreditSales extends AppCompatActivity {
 
     private void loadAccountData() {
         showProgressBar(true);
-        Query query = documentReference.collection(Constants.ACCOUNTS).whereEqualTo(account, true);
-        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
-                    Accounts accounts = q.toObject(Accounts.class);
-                    accountsList.add(accounts);
-                    adapter.notifyDataSetChanged();
-                }
-                showProgressBar(false);
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                showProgressBar(false);
-            }
-        });
 
         accountsArrayAdapter = new ArrayAdapter<Accounts>(this, R.layout.spinner_item, accountsList);
         accountsArrayAdapter.setDropDownViewResource(R.layout.spinner_item);
         accountSpinner.setAdapter(accountsArrayAdapter);
-        accountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
+        documentReference.collection(Constants.ACCOUNTS).whereEqualTo(account, true).get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot q : task.getResult()) {
+                                Accounts accounts = q.toObject(Accounts.class);
+                                System.out.println("***" + accounts.getName());
+                                accountsList.add(accounts);
+                                updateSpinnerList();
+                            }
+                        } else {
+                            toast("Error getting documents: " + task.getException());
+                        }
+                        showProgressBar(false);
+                    }
+                });
+
     }
 
     private void setListeners() {
@@ -287,165 +284,136 @@ public class CreditSales extends AppCompatActivity {
     }
 
     private void resetFreeTextView() {
-        itemName.setText(null);
-        etQuantity.setText(null);
-        etPrice.setText(null);
-        etAmount.setText(null);
-        etNote.setTag(null);
-        etNote.setColorFilter(Color.BLACK);
+        if (itemName.getText().toString().length() != 0 && etAmount.getText().toString().length() != 0) {
+            itemName.setText(null);
+            etQuantity.setText(null);
+            etPrice.setText(null);
+            etAmount.setText(null);
+            etNote.setTag(null);
+            etNote.setColorFilter(Color.BLACK);
+        }
 
 
         quantity = 0.0;
         price = 0.0;
     }
 
-    private void saveFreeItems(int sign) {
+    public void saveButton(View view) {
+        batch = firebaseFirestore.batch();
+        // initiateAccountingEntries();
+        saveFreeItems(sign);
+        saveListItems(sign);
+        batchWrite();
+    }
+
+    public void savePaymentsButton(View view) {
+        batch = firebaseFirestore.batch();
+        // initiateAccountingEntries();
+        String dia = null;
+        if (account.contains(Constants.customer))
+            dia = "Are you Sure to Receive Customer payments from ";
+        else if (account.contains(Constants.vendor))
+            dia = "Are you Sure to Pay Vendor ";
+        else
+            dia = "Are you Sure to Pay Lender ";
+        new AlertDialog.Builder(view.getContext())
+                .setTitle("Receive Credit")
+                .setMessage(dia + accountSpinner.getSelectedItem())
+
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        saveFreeItems(sign * -1);
+                        saveListItems(sign * -1);
+                        batchWrite();
+                    }
+                })
+                // A null listener allows the button to dismiss the dialog and take no further action.
+                .setNegativeButton(android.R.string.no, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+    }
+
+    private void saveFreeItems(int sig) {
         if (UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0 && accountSpinner.getSelectedItem() != null) {
             Transaction t = new Transaction();
-            showProgressBar(true, "Please wait, Saving Data");
-            DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
+            DocumentReference freeItemDocument = documentReference.collection(Constants.TRANSACTIONS).document();
             String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
 
             t.setItemName(itemName.getText().toString());
-            if (sign > 0)
+            if (sig != sign)
                 t.setTransactionType(transactionTypeReverse);
             else
                 t.setTransactionType(transactionType);
-            t.setAccountName(transactionType);
+            t.setAccountName(accountSpinner.getSelectedItem().toString());
             t.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
-            t.setTimestamp(FieldValue.serverTimestamp());
-            t.setId(newDocument.getId());
+            t.setId(freeItemDocument.getId());
             if (etNote.getTag() != null)
                 t.setNotes(etNote.getTag().toString());
             t.setQuantity(UHelper.parseDouble(etQuantity.getText().toString()));
             t.setPrice(UHelper.parseDouble(etPrice.getText().toString()));
-            t.setAmount(UHelper.parseDouble(etAmount.getText().toString()) * sign);
-            t.setTimestamp(FieldValue.serverTimestamp());
+            t.setAmount(UHelper.parseDouble(etAmount.getText().toString()) * sig);
+            t.setTimestamp(System.currentTimeMillis());
+            t.setAccountId(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
 
             //Update Postings for Days Credit Sales
             final Map<String, Object> data = new HashMap<>();
-            if (sign > 0)
+            if (sig != sign)
                 data.put(transactionTypeReverse, FieldValue.increment(t.getAmount()));
             else
                 data.put(transactionType, FieldValue.increment(t.getAmount()));
 
-            newDocument.set(t).addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    showProgressBar(false);
-                    toast(Constants.SUCCESS_MESSAGE);
-                    accountEntry.set(data, SetOptions.merge());
-                    resetFreeTextView();
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    showProgressBar(false);
-                    toast(Constants.FAIL_MESSAGE);
-                    Log.d(TAG, e.toString());
-                }
-            });
+            DocumentReference doc = documentReference.collection(Constants.ACCOUNTS).document(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
+            DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
+
+            batch.set(freeItemDocument, t);
+            batch.set(accountEntry, data, SetOptions.merge());
+            batch.set(doc, data, SetOptions.merge());
         }
     }
 
-    public void save(View view) {
-        initiateAccountingEntries();
-        saveListItems(view);
-    }
-
-    public void saveListItems(View view) {
-
-        switch (view.getId()) {
-            case R.id.saveSales:
-                save(-1);
-                saveFreeItems(-1);
-                break;
-
-            case R.id.saveCreditReceived:
-                String dia = null;
-                if (account.contains(Constants.customer))
-                    dia = "Are you Sure to Receive Customer payments from ";
-                else dia = "Are you Sure to Pay Vendor ";
-                new AlertDialog.Builder(view.getContext())
-                        .setTitle("Receive Credit")
-                        .setMessage(dia + accountSpinner.getSelectedItem())
-
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                save(+1);
-                                saveFreeItems(+1);
-
-                            }
-                        })
-                        // A null listener allows the button to dismiss the dialog and take no further action.
-                        .setNegativeButton(android.R.string.no, null)
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-                break;
-
-            default:
-                break;
-        }
-
-    }
-
-    public void save(int sign) {
-        if (adapter.total <= 0)
+    public void saveListItems(int sig) {
+        if (adapter.total <= 0 || accountSpinner.getSelectedItem() == null)
             return;
-        if (accountSpinner.getSelectedItem() == null)
-            return;
-        WriteBatch batch = firebaseFirestore.batch();
 
         for (final Transaction t : adapter.transactionList) {
             if (t.getAmount() > 0) {
-                showProgressBar(true, "Please wait, Saving Data");
+
                 DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
-                t.setAmount(t.getAmount() * sign);
-                if (sign > 0)
+                t.setAmount(t.getAmount() * sig);
+                if (sig != sign)
                     t.setTransactionType(transactionTypeReverse);
                 else
                     t.setTransactionType(transactionType);
                 t.setAccountName(accountSpinner.getSelectedItem().toString());
                 String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
                 t.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
-                t.setTimestamp(FieldValue.serverTimestamp());
+                t.setTimestamp(System.currentTimeMillis());
                 t.setId(newDocument.getId());
+                t.setAccountId(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
+
 
                 //Update Postings for Days Credit Sales
                 Map<String, Object> data = new HashMap<>();
-                if (sign > 0)
+                if (sig != sign)
                     data.put(transactionTypeReverse, FieldValue.increment(t.getAmount()));
                 else
                     data.put(transactionType, FieldValue.increment(t.getAmount()));
 
+                DocumentReference doc = documentReference.collection(Constants.ACCOUNTS).document(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
+                DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
+
                 batch.set(newDocument, t);
                 batch.set(accountEntry, data, SetOptions.merge());
+                batch.set(doc, data, SetOptions.merge());
             }
         }
-        batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                showProgressBar(false);
-                toast("Data Saved");
-                adapter.notifyDataSetChanged();
-                setDate();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                showProgressBar(false);
-                toast("Failed to update, please enter again!");
-            }
-        });
     }
 
-    private void initiateAccountingEntries() {
-        accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
+/*    private void initiateAccountingEntries() {
         Map<String, Object> fsDate = new HashMap<>();
         fsDate.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
         accountEntry.set(fsDate, SetOptions.merge());
-
-    }
+    }*/
 
     public void datePicker(final View view) {
         {
@@ -488,6 +456,15 @@ public class CreditSales extends AppCompatActivity {
         });
     }
 
+    private void updateSpinnerList() {
+
+        runOnUiThread(new Runnable() {
+            public void run() {
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
+
     private void showProgressBar(final boolean visibility, final String message) {
 
         runOnUiThread(new Runnable() {
@@ -505,5 +482,84 @@ public class CreditSales extends AppCompatActivity {
         toast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 0);
         toast.show();
     }
+
+    public void summary(final View view) {
+        if (accountSpinner.getSelectedItem() == null)
+            return;
+        ;
+        DocumentReference docRef = documentReference.collection(Constants.ACCOUNTS).document(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
+        final HashMap<String, Object>[] x = new HashMap[]{new HashMap<>()};
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        double in, out;
+                        try {
+                            in = document.get(transactionType, Double.class);
+                            out = document.get(transactionTypeReverse, Double.class);
+                        } catch (NullPointerException e) {
+                            in = 0;
+                            out = 0;
+                        }
+
+                        new AlertDialog.Builder(view.getContext())
+                                .setTitle("Summary ")
+                                .setMessage(transactionType + " Rs : " + document.get(transactionType) + "\n" +
+                                        transactionTypeReverse + " Rs : " + document.get(transactionTypeReverse) + "\n" +
+                                        "Balance Rs : " + (in + out))
+                                .setNegativeButton(android.R.string.no, null)
+                                .setIcon(R.drawable.ic_timeline_black_24dp)
+                                .show();
+                    } else {
+                        Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
+    }
+
+    public void batchWrite() {
+        if (!isAccountAvailable())
+            return;
+
+        if (!isFreeItemAvailable() && !isItemListAvailable())
+            return;
+
+        showProgressBar(true, "Please wait, Saving Data");
+        batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                showProgressBar(false);
+                toast("Data Saved");
+                adapter.notifyDataSetChanged();
+                resetFreeTextView();
+                setDate();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                showProgressBar(false);
+                toast("Failed to update, please enter again!");
+            }
+        });
+
+    }
+
+    public boolean isAccountAvailable() {
+        return accountSpinner.getSelectedItem() != null;
+    }
+
+    public boolean isItemListAvailable() {
+        return adapter.total > 0;
+    }
+
+    public boolean isFreeItemAvailable() {
+        return UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0;
+    }
+
 
 }
