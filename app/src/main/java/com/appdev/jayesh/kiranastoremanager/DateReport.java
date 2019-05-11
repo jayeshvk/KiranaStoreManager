@@ -8,19 +8,30 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.appdev.jayesh.kiranastoremanager.Adapters.DateReportRecyclerViewAdapter;
+import com.appdev.jayesh.kiranastoremanager.Adapters.RecyclerTouchListener;
 import com.appdev.jayesh.kiranastoremanager.Model.Accounts;
 import com.appdev.jayesh.kiranastoremanager.Model.Transaction;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -32,7 +43,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.Source;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +73,8 @@ public class DateReport extends AppCompatActivity {
     List<String> transactionTypeList = new ArrayList<>();
     ArrayAdapter<String> transactionTypeAdapter;
 
+    Double in, out, balance;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,8 +103,206 @@ public class DateReport extends AppCompatActivity {
 
         setDate();
         initiateAccountData();
-
         initiateLoadTransactionTypeData();
+
+        setRecyclerTouchListner();
+    }
+
+    private void setRecyclerTouchListner() {
+        recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
+            @Override
+            public void onClick(View view, final int position) {
+                //on touch of the item, set data on the scree
+                final Transaction transaction = transactionList.get(position);
+
+                System.out.println("P : " + position + " sixe" + transactionList.size());
+
+                // inflate the layout of the popup window
+                LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+                View popupView = inflater.inflate(R.layout.popup_window_transaction_modify, null);
+
+                TextView tvItemName = popupView.findViewById(R.id.itemName);
+                final EditText tvquantity = popupView.findViewById(R.id.quantity);
+                tvquantity.setEnabled(false);
+                final EditText tvprice = popupView.findViewById(R.id.price);
+                tvprice.setEnabled(false);
+                final EditText tvamount = popupView.findViewById(R.id.amount);
+                tvamount.setEnabled(false);
+                final EditText tvnote = popupView.findViewById(R.id.note);
+                tvnote.setEnabled(false);
+
+                tvItemName.setText(transaction.getItemName());
+                tvquantity.setText(transaction.getQuantity() + "");
+                tvprice.setText(transaction.getPrice() + "");
+                tvamount.setText(transaction.getAmount() + "");
+                tvnote.setText(transaction.getNotes());
+
+
+                // create the popup window
+                int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+                int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+                boolean focusable = true; // lets taps outside the popup also dismiss it
+                final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+                // show the popup window
+                // which view you pass in doesn't matter, it is only used for the window tolken
+                popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
+
+                // dismiss the popup window when touched
+                popupView.setOnTouchListener(new View.OnTouchListener() {
+
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        popupWindow.dismiss();
+                        return true;
+                    }
+                });
+
+                tvquantity.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        Double qty = UHelper.parseDouble(tvquantity.getText().toString());
+                        Double prc = UHelper.parseDouble(tvprice.getText().toString());
+                        tvamount.setText(String.format("%.2f", (qty * prc)));
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+
+                    }
+                });
+                tvprice.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        Double qty = UHelper.parseDouble(tvquantity.getText().toString());
+                        Double prc = UHelper.parseDouble(tvprice.getText().toString());
+                        tvamount.setText(String.format("%.2f", (qty * prc)));
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+
+                    }
+                });
+
+                Button delete = popupView.findViewById(R.id.delete);
+                Button update = popupView.findViewById(R.id.update);
+                Button cancel = popupView.findViewById(R.id.cancel);
+                Button edit = popupView.findViewById(R.id.edit);
+
+
+                delete.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        showProgressBar(true, "Deleting Document");
+                        documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId())
+                                .delete()
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        showProgressBar(false);
+                                        toast("Successfully deleted!");
+                                        popupWindow.dismiss();
+                                        loadTransactions();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        showProgressBar(false);
+                                        toast("Error deleting document" + e);
+                                    }
+                                });
+                    }
+                });
+                update.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        transaction.setQuantity(UHelper.parseDouble(tvquantity.getText().toString()));
+                        transaction.setPrice(UHelper.parseDouble(tvprice.getText().toString()));
+                        transaction.setAmount(UHelper.parseDouble(tvamount.getText().toString()));
+                        transaction.setNotes(tvnote.getText().toString());
+
+                        showProgressBar(true, "Updating Document");
+                        documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId())
+                                .set(transaction, SetOptions.merge())
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        showProgressBar(false);
+                                        toast("Successfully Updated!");
+                                        popupWindow.dismiss();
+                                        loadTransactions();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        showProgressBar(false);
+                                        toast("Error updating document" + e);
+                                    }
+                                });
+                    }
+                });
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        popupWindow.dismiss();
+                    }
+                });
+                edit.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        tvquantity.setEnabled(true);
+                        tvprice.setEnabled(true);
+                        tvamount.setEnabled(true);
+                        tvnote.setEnabled(true);
+                    }
+                });
+
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+
+            }
+        }));
+    }
+
+    private void updateFooter() {
+
+        TextView tvin = findViewById(R.id.in);
+        TextView tvout = findViewById(R.id.out);
+        TextView tvbalance = findViewById(R.id.balance);
+        if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.CREDITSALES)) {
+            tvin.setText("Credit SalesΣ\n" + out);
+            tvout.setText("Receipt Σ\n" + in);
+        } else if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.CREDITPURCHASE)) {
+            tvin.setText("Credit PurchaseΣ\n" + in);
+            tvout.setText("Payment Σ\n" + out);
+        } else if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.LOAN)) {
+            tvin.setText("Loan Σ\n" + in);
+            tvout.setText("Payment Σ\n" + out);
+        } else if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.BANKING)) {
+            tvin.setText("Deposit Σ\n" + in);
+            tvout.setText("Withdrawl Σ\n" + out);
+        } else {
+            tvin.setText("+\n" + in);
+            tvout.setText("-\n" + out);
+        }
+
+        tvbalance.setText("Balance Σ\n" + balance);
+
     }
 
     private void initiateAccountData() {
@@ -99,6 +310,17 @@ public class DateReport extends AppCompatActivity {
         accountsAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, accountsList);
         accountsAdapter.setDropDownViewResource(R.layout.spinner_item);
         accountSpinner.setAdapter(accountsAdapter);
+        accountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                refreshRecyclerView();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
     private void initiateLoadTransactionTypeData() {
@@ -119,6 +341,7 @@ public class DateReport extends AppCompatActivity {
         transactionTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                refreshRecyclerView();
                 setAccountTypeLoadAccountData(parent.getItemAtPosition(position).toString());
             }
 
@@ -203,121 +426,41 @@ public class DateReport extends AppCompatActivity {
     }
 
     public void loadTransaction(View view) {
+        loadTransactions();
+
+    }
+
+    private void loadTransactions() {
         refreshRecyclerView();
         String tranType = transactionTypeSpinner.getSelectedItem().toString();
-        Query query = null;
-        Query query2 = null;
 
-
-        if (tranType.contains(Constants.CREDITSALES)) {
-            query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
-                    .whereLessThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.CREDITSALES)
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.CUSTOMERPAYMENTS)
-                    .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
-        } else if (tranType.contains(Constants.CREDITPURCHASE)) {
-            query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
-                    .whereLessThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.CREDITPURCHASE)
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.VENDORPAYMENTS)
-                    .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
-        } else if (tranType.contains(Constants.LOAN)) {
-            query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
-                    .whereLessThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.LOAN)
-                    //.whereEqualTo(Constants.TRANSACTIONTYPE, Constants.LOANPAYMENT)
-                    .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
-            query2 = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
-                    .whereLessThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.LOANPAYMENT)
-                    .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
-        } else if (tranType.contains(Constants.BANKING)) {
-            query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
-                    .whereLessThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.DEPOSIT)
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.WITHDRAWL);
-        } else if ((tranType.contains(Constants.CASHSALES))) {
-            query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
-                    .whereLessThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.CASHSALES);
-        } else if ((tranType.contains(Constants.CASHPURCHASE))) {
-            query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
-                    .whereLessThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.CASHPURCHASE);
-        } else if ((tranType.contains(Constants.EXPENSES))) {
-            query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
-                    .whereLessThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.EXPENSES);
-        } else {
-            toast("Nothing selected");
-        }
-/*        query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
+        Query query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
                 .whereLessThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
-                .whereEqualTo(Constants.TRANSACTIONTYPE, Constants.LOAN)
-                .whereEqualTo("accountId", "5P07an5DGoVe8bjUuD8B");
-        showProgressBar(true);*/
-
-        Source source = Source.SERVER;
-
-/*        query.get(source).addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        Log.d(TAG, document.getId() + " => " + document.getData());
-                    }
-                } else {
-                    Log.d(TAG, "Error getting documents: ", task.getException());
-                }
-                showProgressBar(false);
-            }
-        });*/
-
-/*        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                if (queryDocumentSnapshots != null) {
-                    for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
-                        Transaction transaction = q.toObject(Transaction.class);
-                        transactionList.add(transaction);
-                        System.out.println(transaction.getItemName());
-                    }
-                }
-                showProgressBar(false);
-            }
-        });*/
-        showProgressBar(true);
+                .whereEqualTo(Constants.TRANSACTION, tranType)
+                .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
+        showProgressBar(true, "Loading Transaction List");
         query.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
                 if (queryDocumentSnapshots != null) {
                     for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
                         Transaction transaction = q.toObject(Transaction.class);
+                        if (transaction.getAmount() > 0)
+                            in = in + transaction.getAmount();
+                        if (transaction.getAmount() < 0)
+                            out = out + transaction.getAmount();
+
+                        balance = balance + transaction.getAmount();
+
                         transactionList.add(transaction);
                         System.out.println(transaction.getItemName());
                     }
                 }
                 showProgressBar(false);
                 recyclerViewAdapter.notifyDataSetChanged();
+                updateFooter();
             }
         });
-        if (query2 != null) {
-            query2.addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                    if (queryDocumentSnapshots != null) {
-                        for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
-                            Transaction transaction = q.toObject(Transaction.class);
-                            transactionList.add(transaction);
-                            System.out.println(transaction.getItemName());
-                        }
-                    }
-                    showProgressBar(false);
-                    recyclerViewAdapter.notifyDataSetChanged();
-                }
-            });
-        }
-
     }
 
     private void showProgressBar(final boolean visibility) {
@@ -385,10 +528,13 @@ public class DateReport extends AppCompatActivity {
         todate.setText(UHelper.setPresentDateddMMyyyy());
     }
 
-
     private void refreshRecyclerView() {
         transactionList.clear();
         recyclerViewAdapter.notifyDataSetChanged();
+        in = 0.0;
+        out = 0.0;
+        balance = 0.0;
+        updateFooter();
     }
 
     private void refreshAccountSpinnerView() {
@@ -401,6 +547,18 @@ public class DateReport extends AppCompatActivity {
         Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 0);
         toast.show();
+    }
+
+    private void showProgressBar(final boolean visibility, final String message) {
+
+        runOnUiThread(new Runnable() {
+            public void run() {
+                pDialog.setMessage(message);
+                if (visibility)
+                    showpDialog();
+                else hidepDialog();
+            }
+        });
     }
 
 

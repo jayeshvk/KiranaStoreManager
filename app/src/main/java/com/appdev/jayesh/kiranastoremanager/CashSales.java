@@ -268,6 +268,7 @@ public class CashSales extends AppCompatActivity {
                 t.setTimestamp(System.currentTimeMillis());
                 t.setId(newDocument.getId());
                 t.setAccountId(transactionType);
+                t.setTransaction(transactionType);
                 //Update Postings for Days Sales
                 DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
                 Map<String, Object> data = new HashMap<>();
@@ -315,6 +316,7 @@ public class CashSales extends AppCompatActivity {
             t.setAmount(UHelper.parseDouble(etAmount.getText().toString()) * sign);
             t.setTimestamp(System.currentTimeMillis());
             t.setAccountId(transactionType);
+            t.setTransaction(transactionType);
 
 
             final DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());

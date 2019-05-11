@@ -181,6 +181,8 @@ public class Banking extends AppCompatActivity {
                 dTransaction.setNotes(dComment);
             dTransaction.setAmount(UHelper.parseDouble(dAmount));
             dTransaction.setTimestamp(System.currentTimeMillis());
+            dTransaction.setTransaction(Constants.BANKING);
+            dTransaction.setAccountId(Constants.BANKING);
 
             //Update Postings for Days Sales
             DocumentReference depoAccountEntry = documentReference.collection(Constants.BANKING).document(Constants.DEPOSIT);
@@ -207,6 +209,8 @@ public class Banking extends AppCompatActivity {
                 wTransaction.setNotes(wComment);
             wTransaction.setAmount(UHelper.parseDouble(wAmount));
             wTransaction.setTimestamp(System.currentTimeMillis());
+            wTransaction.setTransaction(Constants.BANKING);
+            wTransaction.setAccountId(Constants.BANKING);
 
             //Update Postings for withdrawl
             DocumentReference wthdrawAccountEntry = documentReference.collection(Constants.BANKING).document(Constants.WITHDRAWL);

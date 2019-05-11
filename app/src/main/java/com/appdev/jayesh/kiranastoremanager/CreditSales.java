@@ -351,6 +351,7 @@ public class CreditSales extends AppCompatActivity {
             t.setAmount(UHelper.parseDouble(etAmount.getText().toString()) * sig);
             t.setTimestamp(System.currentTimeMillis());
             t.setAccountId(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
+            t.setTransaction(transactionType);
 
             //Update Postings for Days Credit Sales
             final Map<String, Object> data = new HashMap<>();
@@ -387,6 +388,7 @@ public class CreditSales extends AppCompatActivity {
                 t.setTimestamp(System.currentTimeMillis());
                 t.setId(newDocument.getId());
                 t.setAccountId(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
+                t.setTransaction(transactionType);
 
 
                 //Update Postings for Days Credit Sales

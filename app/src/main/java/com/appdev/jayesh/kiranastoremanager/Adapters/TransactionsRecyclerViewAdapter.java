@@ -150,6 +150,7 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
         holder.price.setText("");
         holder.amount.setText("");
         holder.note.setColorFilter(Color.BLACK);
+
     }
 
 

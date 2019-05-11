@@ -5,7 +5,7 @@ public class Constants {
     public static final String CASHPURCHASE = "CASHPURCHASES";
     public static final String CREDITPURCHASE = "CREDITPURCHASES";
     public static final String CREDITSALES = "CREDITSALES";
-    public static final String CUSTOMERPAYMENTS = "CREDITSALES";
+    public static final String CUSTOMERPAYMENTS = "CUSTOMERPAYMENTS";
     public static final String EXPENSES = "EXPENSES";
     public static final String LOAN = "LOAN";
     public static final String VENDORPAYMENTS = "VENDORPAYMENTS";
@@ -19,6 +19,7 @@ public class Constants {
     public static final String ITEMS = "Items";
     public static final String TRANSACTIONS = "Transactions";
     public static final String TRANSACTIONTYPE = "transactionType";
+    public static final String TRANSACTION = "transaction";
     public static final String POSTINGS = "Postings";
     public static final String USERS = "users";
     public static final String TITLE = "title";

@@ -1,6 +1,5 @@
 package com.appdev.jayesh.kiranastoremanager.Adapters;
 
-import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -19,7 +18,7 @@ public class DateReportRecyclerViewAdapter extends RecyclerView.Adapter<DateRepo
     public List<Transaction> transactionList;
 
     class MyViewHolder extends RecyclerView.ViewHolder {
-        TextView date, itemName, quantity, price, amount, note;
+        TextView date, itemName, quantity, price, amount;
 
         MyViewHolder(final View view) {
             super(view);
@@ -28,7 +27,6 @@ public class DateReportRecyclerViewAdapter extends RecyclerView.Adapter<DateRepo
             quantity = view.findViewById(R.id.quantity);
             price = view.findViewById(R.id.price);
             amount = view.findViewById(R.id.amount);
-            note = view.findViewById(R.id.note);
 /*
             note.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -84,7 +82,6 @@ public class DateReportRecyclerViewAdapter extends RecyclerView.Adapter<DateRepo
         holder.quantity.setText(transaction.getQuantity() + "");
         holder.price.setText(transaction.getPrice() + "");
         holder.amount.setText(transaction.getAmount() + "");
-        holder.note.setTextColor(Color.BLACK);
     }
 
 

@@ -24,6 +24,16 @@ public class Transaction {
     private String Id;
     private long timestamp;
 
+    public String getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(String transaction) {
+        this.transaction = transaction;
+    }
+
+    private String transaction;
+
     public long getTimestamp() {
         return timestamp;
     }

@@ -85,7 +85,7 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:src="@drawable/ic_person_black_24dp" />
+            android:src="@drawable/ic_format_list_bulleted_black_24dp" />
 
         <Spinner
             android:id="@+id/transactionTypeSpinner"
@@ -122,35 +122,35 @@
         android:orientation="horizontal">
 
         <TextView
-            style="@style/DateReportItem"
+            style="@style/DateReportItemHeading"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0.75"
             android:text="Date" />
 
         <TextView
-            style="@style/DateReportItem"
+            style="@style/DateReportItemHeading"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Item" />
 
         <TextView
-            style="@style/DateReportItem"
+            style="@style/DateReportItemHeading"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0.75"
             android:text="Qty" />
 
         <TextView
-            style="@style/DateReportItem"
+            style="@style/DateReportItemHeading"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0.75"
             android:text="Price" />
 
         <TextView
-            style="@style/DateReportItem"
+            style="@style/DateReportItemHeading"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -172,14 +172,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:gravity="center"
+        android:background="@color/colorAccent"
         android:orientation="horizontal">
 
+        <TextView
+            style="@style/DateReportFooter"
+            android:id="@+id/in"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Footer" />
 
         <TextView
-            android:layout_width="match_parent"
+            style="@style/DateReportFooter"
+            android:id="@+id/out"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@color/colorAccent"
+            android:layout_weight="1"
+            android:text="Footer" />
+
+        <TextView
+            style="@style/DateReportFooter"
+            android:id="@+id/balance"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Footer" />
     </LinearLayout>
 </LinearLayout>
