@@ -97,8 +97,11 @@ public class MainActivity extends AppCompatActivity {
         listDataHeader.add(settings);
 
 
-        ExpandedMenuModel backup = new ExpandedMenuModel("Backup", R.drawable.ic_account_circle, false);
-        listDataHeader.add(backup);
+        ExpandedMenuModel report = new ExpandedMenuModel("Report", R.drawable.ic_account_circle, true);
+        listDataHeader.add(report);
+        List<String> reportItems = new ArrayList<>();
+        reportItems.add("Date Report");
+        listDataChild.put(report, reportItems);
 
         ExpandedMenuModel logout = new ExpandedMenuModel("Logout", R.drawable.ic_account_circle, false);
         listDataHeader.add(logout);
@@ -109,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         expandableList = findViewById(R.id.navigationmenu);
         mMenuAdapter = new ExpandableListAdapter(this, listDataHeader, listDataChild, expandableList);
 
-        // setting list adapter
+        // setting list recyclerViewAdapter
         expandableList.setAdapter(mMenuAdapter);
 
         expandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
@@ -156,9 +159,9 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, AccountsActivity.class));
 
                 break;
-            case "Detailed Report":
+            case "Date Report":
                 mDrawerLayout.closeDrawer(Gravity.START);
-                //startActivity(new Intent(MainActivity.this, ReportsDetailed.class));
+                startActivity(new Intent(MainActivity.this, DateReport.class));
                 break;
 
             case "Settings":

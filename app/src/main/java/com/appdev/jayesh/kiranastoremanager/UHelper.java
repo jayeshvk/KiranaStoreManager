@@ -310,6 +310,13 @@ public class UHelper {
         return formatter.format(calendar.getTime());
     }
 
+    public static String militoddmmyyyy(long mili) {
+        DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(mili);
+        return formatter.format(calendar.getTime());
+    }
+
     public static long ddmmyyyyHHmmTomili(String date) {
 
 //creates a formatter that parses the date in the given format

@@ -117,16 +117,6 @@ public class CashSales extends AppCompatActivity {
 
     }
 
-    private void initiateAccountingEntries() {
-/*
-        accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
-        Map<String, Object> fsDate = new HashMap<>();
-        fsDate.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
-        accountEntry.set(fsDate, SetOptions.merge());
-*/
-
-    }
-
     private void loadItemData() {
 
         firebaseFirestore = FirebaseFirestore.getInstance();
@@ -270,7 +260,6 @@ public class CashSales extends AppCompatActivity {
                 showProgressBar(true, "Please wait, Saving Data");
                 DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
                 double temp = t.getAmount() * sign;
-                System.out.println(temp);
                 t.setAmount(temp);
                 t.setTransactionType(transactionType);
                 t.setAccountName(transactionType);
@@ -278,6 +267,7 @@ public class CashSales extends AppCompatActivity {
                 t.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
                 t.setTimestamp(System.currentTimeMillis());
                 t.setId(newDocument.getId());
+                t.setAccountId(transactionType);
                 //Update Postings for Days Sales
                 DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
                 Map<String, Object> data = new HashMap<>();
@@ -288,6 +278,7 @@ public class CashSales extends AppCompatActivity {
                 batch.set(accountEntry, data, SetOptions.merge());
             }
         }
+
         batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
@@ -323,6 +314,8 @@ public class CashSales extends AppCompatActivity {
             t.setPrice(UHelper.parseDouble(etPrice.getText().toString()));
             t.setAmount(UHelper.parseDouble(etAmount.getText().toString()) * sign);
             t.setTimestamp(System.currentTimeMillis());
+            t.setAccountId(transactionType);
+
 
             final DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
             final Map<String, Object> data = new HashMap<>();

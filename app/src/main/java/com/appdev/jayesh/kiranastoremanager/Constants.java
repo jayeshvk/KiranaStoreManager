@@ -5,7 +5,7 @@ public class Constants {
     public static final String CASHPURCHASE = "CASHPURCHASES";
     public static final String CREDITPURCHASE = "CREDITPURCHASES";
     public static final String CREDITSALES = "CREDITSALES";
-    public static final String CUSTOMERPAYMENTS = "CUSTOMERPAYMENTS";
+    public static final String CUSTOMERPAYMENTS = "CREDITSALES";
     public static final String EXPENSES = "EXPENSES";
     public static final String LOAN = "LOAN";
     public static final String VENDORPAYMENTS = "VENDORPAYMENTS";
@@ -28,7 +28,7 @@ public class Constants {
     public static final String FAIL_MESSAGE = "Could not save, try again!";
     public static final String DEPOSIT = "DEPOSIT";
     public static final String WITHDRAWL = "WITHDRAWL";
-    public static final String BANKING = "Banking";
+    public static final String BANKING = "BANKING";
     public static final String FINANCEITEM = "FINANCEITEM";
     public static final String LOANPAYMENT = "LOANPAYMENT";
     public static final String SIGN = "SIGN";

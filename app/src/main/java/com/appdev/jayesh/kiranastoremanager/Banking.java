@@ -46,7 +46,7 @@ public class Banking extends AppCompatActivity {
     FirebaseUser user;
     FirebaseFirestore firebaseFirestore;
     List<Transaction> transactionList = new ArrayList<>();
-    DocumentReference depoAccountEntry, wthdrawAccountEntry, documentReference;
+    DocumentReference documentReference;
 
     private ProgressDialog pDialog;
 
@@ -141,7 +141,6 @@ public class Banking extends AppCompatActivity {
                 });
     }
 
-
     private void resetFreeTextView() {
         depositName.setText(null);
         depositAmount.setText(null);
@@ -152,22 +151,8 @@ public class Banking extends AppCompatActivity {
 
     }
 
-    private void initiateAccountingEntries() {
-        depoAccountEntry = documentReference.collection(Constants.BANKING).document(Constants.DEPOSIT);
-        Map<String, Object> depo = new HashMap<>();
-        depo.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
-        depoAccountEntry.set(depo, SetOptions.merge());
-
-        wthdrawAccountEntry = documentReference.collection(Constants.BANKING).document(Constants.WITHDRAWL);
-        Map<String, Object> withdr = new HashMap<>();
-        withdr.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
-        wthdrawAccountEntry.set(withdr, SetOptions.merge());
-    }
-
     public void save(View view) {
-        initiateAccountingEntries();
         saveListItems();
-
     }
 
     private void saveListItems() {
@@ -181,6 +166,7 @@ public class Banking extends AppCompatActivity {
 
         WriteBatch batch = firebaseFirestore.batch();
 
+        //if deposit entered
         if (dName.length() > 0 && dAmount.length() > 0) {
             Transaction dTransaction = new Transaction();
 
@@ -188,6 +174,7 @@ public class Banking extends AppCompatActivity {
             dTransaction.setItemName(dName);
             dTransaction.setTransactionType(Constants.DEPOSIT);
             dTransaction.setAccountName(Constants.DEPOSIT);
+            dTransaction.setAccountId(Constants.DEPOSIT);
             dTransaction.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
             dTransaction.setId(depositDocument.getId());
             if (dComment.length() > 0)
@@ -196,13 +183,16 @@ public class Banking extends AppCompatActivity {
             dTransaction.setTimestamp(System.currentTimeMillis());
 
             //Update Postings for Days Sales
-            final Map<String, Object> data = new HashMap<>();
+            DocumentReference depoAccountEntry = documentReference.collection(Constants.BANKING).document(Constants.DEPOSIT);
+            Map<String, Object> data = new HashMap<>();
             data.put(Constants.DEPOSIT, FieldValue.increment(dTransaction.getAmount()));
+            data.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
 
             batch.set(depositDocument, dTransaction);
             batch.set(depoAccountEntry, data, SetOptions.merge());
         }
 
+        //if withdrawls entered
         if (wName.length() > 0 && wAmount.length() > 0) {
             Transaction wTransaction = new Transaction();
 
@@ -210,6 +200,7 @@ public class Banking extends AppCompatActivity {
             wTransaction.setItemName(wName);
             wTransaction.setTransactionType(Constants.WITHDRAWL);
             wTransaction.setAccountName(Constants.WITHDRAWL);
+            wTransaction.setAccountId(Constants.WITHDRAWL);
             wTransaction.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
             wTransaction.setId(withdrawlDocument.getId());
             if (wComment.length() > 0)
@@ -217,9 +208,11 @@ public class Banking extends AppCompatActivity {
             wTransaction.setAmount(UHelper.parseDouble(wAmount));
             wTransaction.setTimestamp(System.currentTimeMillis());
 
-            //Update Postings for Days Sales
-            final Map<String, Object> data = new HashMap<>();
+            //Update Postings for withdrawl
+            DocumentReference wthdrawAccountEntry = documentReference.collection(Constants.BANKING).document(Constants.WITHDRAWL);
+            Map<String, Object> data = new HashMap<>();
             data.put(Constants.WITHDRAWL, FieldValue.increment(wTransaction.getAmount()));
+            data.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
 
             batch.set(withdrawlDocument, wTransaction);
             batch.set(wthdrawAccountEntry, data, SetOptions.merge());

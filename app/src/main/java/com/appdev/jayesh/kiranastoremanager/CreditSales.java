@@ -139,8 +139,6 @@ public class CreditSales extends AppCompatActivity {
     }
 
     private void loadItemData() {
-
-        firebaseFirestore = FirebaseFirestore.getInstance();
         showProgressBar(true);
         Query query = firebaseFirestore.collection(Constants.USERS).document(user.getUid()).collection(Constants.ITEMS).whereEqualTo("usedFor." + transactionType, true);
         query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -155,7 +153,7 @@ public class CreditSales extends AppCompatActivity {
                     transactionList.add(transaction);
                 }
                 showProgressBar(false);
-                accountsArrayAdapter.notifyDataSetChanged();
+                adapter.notifyDataSetChanged();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -168,7 +166,6 @@ public class CreditSales extends AppCompatActivity {
 
     private void loadAccountData() {
         showProgressBar(true);
-
         accountsArrayAdapter = new ArrayAdapter<Accounts>(this, R.layout.spinner_item, accountsList);
         accountsArrayAdapter.setDropDownViewResource(R.layout.spinner_item);
         accountSpinner.setAdapter(accountsArrayAdapter);
@@ -460,7 +457,7 @@ public class CreditSales extends AppCompatActivity {
 
         runOnUiThread(new Runnable() {
             public void run() {
-                adapter.notifyDataSetChanged();
+                accountsArrayAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -560,6 +557,5 @@ public class CreditSales extends AppCompatActivity {
     public boolean isFreeItemAvailable() {
         return UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0;
     }
-
 
 }
