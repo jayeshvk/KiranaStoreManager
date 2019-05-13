@@ -14,7 +14,7 @@
         <activity
             android:name=".DateReport"
             android:label="@string/title_activity_date_report"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Login"
             android:screenOrientation="portrait">
@@ -50,6 +50,14 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".Banking"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".SalesOrderActivity"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".SalesOrdersReport"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" />
     </application>

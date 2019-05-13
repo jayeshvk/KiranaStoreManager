@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
         listDataHeader.add(report);
         List<String> reportItems = new ArrayList<>();
         reportItems.add("Date Report");
+        reportItems.add("Sales Orders");
         listDataChild.put(report, reportItems);
 
         ExpandedMenuModel logout = new ExpandedMenuModel("Logout", R.drawable.ic_account_circle, false);
@@ -163,7 +164,10 @@ public class MainActivity extends AppCompatActivity {
                 mDrawerLayout.closeDrawer(Gravity.START);
                 startActivity(new Intent(MainActivity.this, DateReport.class));
                 break;
-
+            case "Sales Orders":
+                mDrawerLayout.closeDrawer(Gravity.START);
+                startActivity(new Intent(MainActivity.this, SalesOrdersReport.class));
+                break;
             case "Settings":
                 mDrawerLayout.closeDrawer(Gravity.START);
                 break;
@@ -272,6 +276,11 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(Constants.TRANSACTIONTYPEREVERSE, Constants.LOANPAYMENT);
         intent.putExtra(Constants.ACCOUNTS, Constants.lender);
         intent.putExtra(Constants.TITLE, "Loan Management");
+        startActivity(intent);
+    }
+
+    public void salesOrder(View view) {
+        Intent intent = new Intent(MainActivity.this, SalesOrderActivity.class);
         startActivity(intent);
     }
 }

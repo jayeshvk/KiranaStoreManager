@@ -21,10 +21,19 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:hint="Qty"
         android:inputType="numberDecimal"
-        android:maxLength="6"
-        android:text="Qty" />
+        android:maxLength="6" />
 
+    <EditText
+        android:id="@+id/uom"
+        style="@style/Items"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.75"
+        android:hint="Unit"
+        android:inputType="text"
+        android:maxLength="6" />
 
     <EditText
         android:id="@+id/price"
@@ -32,9 +41,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:hint="Price"
         android:inputType="numberDecimal"
-        android:maxLength="10"
-        android:text="Price" />
+        android:maxLength="10" />
 
     <EditText
         android:id="@+id/amount"
@@ -43,9 +52,9 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:focusable="true"
+        android:hint="amount"
         android:inputType="numberDecimal"
-        android:maxLength="10"
-        android:text="Amount" />
+        android:maxLength="10" />
 
     <ImageView
         android:id="@+id/note"

@@ -14,15 +14,15 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.appdev.jayesh.kiranastoremanager.Model.Transaction;
+import com.appdev.jayesh.kiranastoremanager.Model.SalesOrder;
 import com.appdev.jayesh.kiranastoremanager.R;
 import com.appdev.jayesh.kiranastoremanager.UHelper;
 
 import java.util.List;
 
-public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<TransactionsRecyclerViewAdapter.MyViewHolder> {
+public class SalesOrderRecyclerViewAdapter extends RecyclerView.Adapter<SalesOrderRecyclerViewAdapter.MyViewHolder> {
 
-    public List<Transaction> transactionList;
+    public List<SalesOrder> salesOrderList;
     public double total;
 
     class MyViewHolder extends RecyclerView.ViewHolder {
@@ -86,9 +86,9 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    transactionList.get(getAdapterPosition()).setQuantity(UHelper.parseDouble(quantity.getText().toString()));
-                    transactionList.get(getAdapterPosition()).setPrice(UHelper.parseDouble(price.getText().toString()));
-                    transactionList.get(getAdapterPosition()).setAmount(UHelper.parseDouble(amount.getText().toString()));
+                    salesOrderList.get(getAdapterPosition()).setQuantity(UHelper.parseDouble(quantity.getText().toString()));
+                    salesOrderList.get(getAdapterPosition()).setPrice(UHelper.parseDouble(price.getText().toString()));
+                    salesOrderList.get(getAdapterPosition()).setAmount(UHelper.parseDouble(amount.getText().toString()));
                     total = UHelper.parseDouble(amount.getText().toString());
                 }
 
@@ -105,12 +105,12 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
                     alert.setTitle("Notes");
                     alert.setIcon(R.drawable.ic_event_note_black_24dp);
                     final EditText input = new EditText(view.getContext());
-                    input.setText(transactionList.get(getAdapterPosition()).getNotes());
+                    input.setText(salesOrderList.get(getAdapterPosition()).getNotes());
                     alert.setView(input);
                     alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
                             String text = input.getText().toString();
-                            transactionList.get(getAdapterPosition()).setNotes(text);
+                            salesOrderList.get(getAdapterPosition()).setNotes(text);
                             if (text.trim().length() > 0) {
                                 note.setColorFilter(Color.GREEN);
                             } else
@@ -133,7 +133,7 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    transactionList.get(getAdapterPosition()).setUom(s + "");
+                    salesOrderList.get(getAdapterPosition()).setUom(s + "");
                 }
 
                 @Override
@@ -146,8 +146,8 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
 
     }
 
-    public TransactionsRecyclerViewAdapter(List<Transaction> transactionList) {
-        this.transactionList = transactionList;
+    public SalesOrderRecyclerViewAdapter(List<SalesOrder> salesOrderList) {
+        this.salesOrderList = salesOrderList;
     }
 
     @NonNull
@@ -161,7 +161,7 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        Transaction transaction = transactionList.get(position);
+        SalesOrder transaction = salesOrderList.get(position);
         holder.itemName.setText(transaction.getItemName());
         holder.quantity.setText("");
         holder.price.setText("");
@@ -174,6 +174,6 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
 
     @Override
     public int getItemCount() {
-        return transactionList.size();
+        return salesOrderList.size();
     }
 }

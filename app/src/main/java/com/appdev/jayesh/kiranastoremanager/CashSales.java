@@ -14,7 +14,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -70,11 +69,12 @@ public class CashSales extends AppCompatActivity {
     String title;
     String transactionType;
 
-    EditText itemName, etQuantity, etPrice, etAmount;
+    EditText itemName, etQuantity, etPrice, etAmount, etUOM;
     ImageView etNote;
     Double quantity, price;
     int sign;
 
+    WriteBatch batch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +110,7 @@ public class CashSales extends AppCompatActivity {
         etPrice = findViewById(R.id.price);
         etAmount = findViewById(R.id.amount);
         etNote = findViewById(R.id.note);
+        etUOM = findViewById(R.id.uom);
 
         setDate();
         loadItemData();
@@ -237,6 +238,7 @@ public class CashSales extends AppCompatActivity {
         etAmount.setText(null);
         etNote.setTag(null);
         etNote.setColorFilter(Color.BLACK);
+        etUOM.setText(null);
 
 
         quantity = 0.0;
@@ -244,20 +246,18 @@ public class CashSales extends AppCompatActivity {
     }
 
     public void save(View view) {
-        //initiateAccountingEntries();
+        batch = firebaseFirestore.batch();
         saveListItems();
         saveFreeItems();
+        batchWrite();
     }
 
     private void saveListItems() {
         if (adapter.total <= 0)
             return;
 
-        WriteBatch batch = firebaseFirestore.batch();
-
         for (final Transaction t : adapter.transactionList) {
             if (t.getAmount() > 0) {
-                showProgressBar(true, "Please wait, Saving Data");
                 DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
                 double temp = t.getAmount() * sign;
                 t.setAmount(temp);
@@ -279,29 +279,12 @@ public class CashSales extends AppCompatActivity {
                 batch.set(accountEntry, data, SetOptions.merge());
             }
         }
-
-        batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                showProgressBar(false);
-                toast("Data Saved");
-                adapter.notifyDataSetChanged();
-                setDate();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                showProgressBar(false);
-                toast("Failed to update, please enter again!");
-            }
-        });
     }
 
     private void saveFreeItems() {
 
-        if (UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().trim().length() > 0) {
+        if (isFreeItemAvailable()) {
             Transaction t = new Transaction();
-            showProgressBar(true, "Please wait, Saving Data");
             DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
             String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
             t.setItemName(itemName.getText().toString());
@@ -317,33 +300,15 @@ public class CashSales extends AppCompatActivity {
             t.setTimestamp(System.currentTimeMillis());
             t.setAccountId(transactionType);
             t.setTransaction(transactionType);
-
+            t.setUom(etUOM.getText().toString());
 
             final DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
             final Map<String, Object> data = new HashMap<>();
             data.put(transactionType, FieldValue.increment(t.getAmount()));
             data.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
 
-
-            WriteBatch batch = firebaseFirestore.batch();
             batch.set(newDocument, t);
             batch.set(accountEntry, data, SetOptions.merge());
-
-            batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    showProgressBar(false);
-                    toast(Constants.SUCCESS_MESSAGE);
-                    resetFreeTextView();
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    showProgressBar(false);
-                    toast(Constants.FAIL_MESSAGE);
-                    Log.d(TAG, e.toString());
-                }
-            });
         }
     }
 
@@ -429,6 +394,39 @@ public class CashSales extends AppCompatActivity {
         Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 0);
         toast.show();
+    }
+
+    public void batchWrite() {
+
+        if (!isFreeItemAvailable() && !isItemListAvailable())
+            return;
+
+        showProgressBar(true, "Please wait, Saving Data");
+        batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                showProgressBar(false);
+                toast("Data Saved");
+                adapter.notifyDataSetChanged();
+                resetFreeTextView();
+                setDate();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                showProgressBar(false);
+                toast("Failed to update, please enter again!");
+            }
+        });
+
+    }
+
+    public boolean isItemListAvailable() {
+        return adapter.total > 0;
+    }
+
+    public boolean isFreeItemAvailable() {
+        return UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0;
     }
 
 }

@@ -70,7 +70,7 @@ public class CreditSales extends AppCompatActivity {
     int mMonth;
     int mDay;
 
-    DocumentReference accountEntry, documentReference;
+    DocumentReference documentReference;
 
     List<Accounts> accountsList = new ArrayList<>();
 
@@ -80,7 +80,7 @@ public class CreditSales extends AppCompatActivity {
 
     String title, transactionType, account, transactionTypeReverse;
 
-    EditText itemName, etQuantity, etPrice, etAmount;
+    EditText itemName, etQuantity, etPrice, etAmount, etUom;
     ImageView etNote;
     Double quantity, price;
 
@@ -122,7 +122,6 @@ public class CreditSales extends AppCompatActivity {
 
         dt = findViewById(R.id.date);
 
-        accountSpinner = findViewById(R.id.spinner);
 
         setDate();
         loadAccountData();
@@ -165,11 +164,12 @@ public class CreditSales extends AppCompatActivity {
     }
 
     private void loadAccountData() {
-        showProgressBar(true);
+        accountSpinner = findViewById(R.id.spinner);
         accountsArrayAdapter = new ArrayAdapter<Accounts>(this, R.layout.spinner_item, accountsList);
         accountsArrayAdapter.setDropDownViewResource(R.layout.spinner_item);
         accountSpinner.setAdapter(accountsArrayAdapter);
 
+        showProgressBar(true);
         documentReference.collection(Constants.ACCOUNTS).whereEqualTo(account, true).get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -196,6 +196,7 @@ public class CreditSales extends AppCompatActivity {
         etPrice = findViewById(R.id.price);
         etAmount = findViewById(R.id.amount);
         etNote = findViewById(R.id.note);
+        etUom = findViewById(R.id.uom);
 
         etQuantity.addTextChangedListener(new TextWatcher() {
             @Override
@@ -352,6 +353,7 @@ public class CreditSales extends AppCompatActivity {
             t.setTimestamp(System.currentTimeMillis());
             t.setAccountId(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
             t.setTransaction(transactionType);
+            t.setUom(etUom.getText().toString());
 
             //Update Postings for Days Credit Sales
             final Map<String, Object> data = new HashMap<>();
@@ -407,12 +409,6 @@ public class CreditSales extends AppCompatActivity {
             }
         }
     }
-
-/*    private void initiateAccountingEntries() {
-        Map<String, Object> fsDate = new HashMap<>();
-        fsDate.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
-        accountEntry.set(fsDate, SetOptions.merge());
-    }*/
 
     public void datePicker(final View view) {
         {

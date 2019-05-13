@@ -18,6 +18,7 @@ public class Constants {
     public static final String ACCOUNTS = "Accounts";
     public static final String ITEMS = "Items";
     public static final String TRANSACTIONS = "Transactions";
+    public static final String SALESORDERS = "SalesOrders";
     public static final String TRANSACTIONTYPE = "transactionType";
     public static final String TRANSACTION = "transaction";
     public static final String POSTINGS = "Postings";
@@ -33,4 +34,12 @@ public class Constants {
     public static final String FINANCEITEM = "FINANCEITEM";
     public static final String LOANPAYMENT = "LOANPAYMENT";
     public static final String SIGN = "SIGN";
+
+    public static final String STATUS_OPEN = "open";
+    public static final String STATUS_DELIVERED = "delivered";
+    public static final String STATUS_PENDING = "pending";
+    public static final String STATUS_CANCELLED = "cancelled";
+    public static final String STATUS_CLOSED = "closed";
+
+
 }

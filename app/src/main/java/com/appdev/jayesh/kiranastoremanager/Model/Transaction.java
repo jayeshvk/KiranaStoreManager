@@ -24,6 +24,16 @@ public class Transaction {
     private String Id;
     private long timestamp;
 
+    public String getUom() {
+        return uom;
+    }
+
+    public void setUom(String uom) {
+        this.uom = uom;
+    }
+
+    private String uom;
+
     public String getTransaction() {
         return transaction;
     }

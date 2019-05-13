@@ -2,6 +2,7 @@ package com.appdev.jayesh.kiranastoremanager;
 
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -12,7 +13,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -21,14 +21,16 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.appdev.jayesh.kiranastoremanager.Adapters.DateReportRecyclerViewAdapter;
 import com.appdev.jayesh.kiranastoremanager.Adapters.RecyclerTouchListener;
+import com.appdev.jayesh.kiranastoremanager.Adapters.SalesOrderReportRecyclerViewAdapter;
 import com.appdev.jayesh.kiranastoremanager.Model.Accounts;
-import com.appdev.jayesh.kiranastoremanager.Model.Transaction;
+import com.appdev.jayesh.kiranastoremanager.Model.SalesOrder;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -48,7 +50,7 @@ import com.google.firebase.firestore.SetOptions;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DateReport extends AppCompatActivity {
+public class SalesOrdersReport extends AppCompatActivity {
 
     private static final String TAG = "DateReport";
 
@@ -56,10 +58,10 @@ public class DateReport extends AppCompatActivity {
     FirebaseUser user;
     FirebaseFirestore firebaseFirestore;
 
-    List<Transaction> transactionList = new ArrayList<>();
+    List<SalesOrder> salesOrderList = new ArrayList<>();
 
     private ProgressDialog pDialog;
-    DateReportRecyclerViewAdapter recyclerViewAdapter;
+    SalesOrderReportRecyclerViewAdapter recyclerViewAdapter;
 
     RecyclerView recyclerView;
 
@@ -67,11 +69,11 @@ public class DateReport extends AppCompatActivity {
 
     EditText fromdate, todate;
 
-    Spinner accountSpinner, transactionTypeSpinner;
+    Spinner accountSpinner, statusSpinner;
     List<Accounts> accountsList = new ArrayList<>();
     ArrayAdapter<Accounts> accountsAdapter;
-    List<String> transactionTypeList = new ArrayList<>();
-    ArrayAdapter<String> transactionTypeAdapter;
+    List<String> statusList = new ArrayList<>();
+    ArrayAdapter<String> statusAdapter;
 
     Double in, out, balance;
 
@@ -82,7 +84,7 @@ public class DateReport extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_date_report);
+        setContentView(R.layout.activity_sales_order_report);
 
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
@@ -94,17 +96,16 @@ public class DateReport extends AppCompatActivity {
         pDialog.setCancelable(false);
         pDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 
-        recyclerViewAdapter = new DateReportRecyclerViewAdapter(transactionList);
+        recyclerViewAdapter = new SalesOrderReportRecyclerViewAdapter(salesOrderList);
 
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(DateReport.this));
+        recyclerView.setLayoutManager(new LinearLayoutManager(SalesOrdersReport.this));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         recyclerView.setAdapter(recyclerViewAdapter);
 
         fromdate = findViewById(R.id.fromdate);
         todate = findViewById(R.id.todate);
-
         tvin = findViewById(R.id.in);
         tvout = findViewById(R.id.out);
         tvbalance = findViewById(R.id.balance);
@@ -121,27 +122,42 @@ public class DateReport extends AppCompatActivity {
             @Override
             public void onClick(View view, final int position) {
                 //on touch of the item, set data on the scree
-                final Transaction transaction = transactionList.get(position);
-
-                System.out.println("P : " + position + " sixe" + transactionList.size());
+                final SalesOrder salesOrder = salesOrderList.get(position);
 
                 // inflate the layout of the popup window
                 LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-                View popupView = inflater.inflate(R.layout.popup_window_transaction_modify, null);
+                final View popupView = inflater.inflate(R.layout.popup_window_salesorder_modify, null);
 
-                final TextView tvItemName = popupView.findViewById(R.id.itemName);
+                TextView tvItemName = popupView.findViewById(R.id.itemName);
                 final EditText tvquantity = popupView.findViewById(R.id.quantity);
                 final EditText tvprice = popupView.findViewById(R.id.price);
                 final EditText tvamount = popupView.findViewById(R.id.amount);
                 final EditText tvnote = popupView.findViewById(R.id.note);
-                final EditText uom = popupView.findViewById(R.id.uom);
+                final EditText tvUom = popupView.findViewById(R.id.uom);
 
-                tvItemName.setText(transaction.getItemName());
-                tvquantity.setText(transaction.getQuantity() + "");
-                tvprice.setText(transaction.getPrice() + "");
-                tvamount.setText(transaction.getAmount() + "");
-                tvnote.setText(transaction.getNotes());
-                uom.setText(transaction.getUom());
+                final RadioButton open = popupView.findViewById(R.id.open);
+                final RadioButton delivered = popupView.findViewById(R.id.delivered);
+                final RadioButton pending = popupView.findViewById(R.id.pending);
+                final RadioButton closed = popupView.findViewById(R.id.closed);
+                final RadioButton cancelled = popupView.findViewById(R.id.cancelled);
+
+                tvItemName.setText(salesOrder.getItemName());
+                tvquantity.setText(salesOrder.getQuantity() + "");
+                tvprice.setText(salesOrder.getPrice() + "");
+                tvamount.setText(salesOrder.getAmount() + "");
+                tvnote.setText(salesOrder.getNotes());
+                tvUom.setText(salesOrder.getUom());
+
+                if (salesOrder.getStatus().contains(open.getText().toString()))
+                    open.setChecked(true);
+                if (salesOrder.getStatus().contains(closed.getText().toString()))
+                    closed.setChecked(true);
+                if (salesOrder.getStatus().contains(pending.getText().toString()))
+                    pending.setChecked(true);
+                if (salesOrder.getStatus().contains(delivered.getText().toString()))
+                    delivered.setChecked(true);
+                if (salesOrder.getStatus().contains(cancelled.getText().toString()))
+                    cancelled.setChecked(true);
 
 
                 // create the popup window
@@ -150,19 +166,10 @@ public class DateReport extends AppCompatActivity {
                 boolean focusable = true; // lets taps outside the popup also dismiss it
                 final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
                 popupWindow.setElevation(20);
+                popupWindow.setOutsideTouchable(false);
                 // show the popup window
                 // which view you pass in doesn't matter, it is only used for the window tolken
                 popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
-
-                // dismiss the popup window when touched
-                popupView.setOnTouchListener(new View.OnTouchListener() {
-
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        popupWindow.dismiss();
-                        return true;
-                    }
-                });
 
                 tvquantity.addTextChangedListener(new TextWatcher() {
                     @Override
@@ -201,17 +208,19 @@ public class DateReport extends AppCompatActivity {
                     }
                 });
 
-                Button delete = popupView.findViewById(R.id.delete);
+                final Button delete = popupView.findViewById(R.id.delete);
                 Button update = popupView.findViewById(R.id.update);
-                Button cancel = popupView.findViewById(R.id.cancel);
+                final Button cancel = popupView.findViewById(R.id.cancel);
                 Button edit = popupView.findViewById(R.id.edit);
+
+                final RadioGroup statusGroup = popupView.findViewById(R.id.statusGroup);
 
 
                 delete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         showProgressBar(true, "Deleting Document");
-                        documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId())
+                        documentReference.collection(Constants.SALESORDERS).document(salesOrder.getId())
                                 .delete()
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
@@ -234,15 +243,27 @@ public class DateReport extends AppCompatActivity {
                 update.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        transaction.setQuantity(UHelper.parseDouble(tvquantity.getText().toString()));
-                        transaction.setPrice(UHelper.parseDouble(tvprice.getText().toString()));
-                        transaction.setAmount(UHelper.parseDouble(tvamount.getText().toString()));
-                        transaction.setNotes(tvnote.getText().toString());
-                        transaction.setUom(uom.getText().toString());
+                        salesOrder.setQuantity(UHelper.parseDouble(tvquantity.getText().toString()));
+                        salesOrder.setPrice(UHelper.parseDouble(tvprice.getText().toString()));
+                        salesOrder.setAmount(UHelper.parseDouble(tvamount.getText().toString()));
+                        salesOrder.setNotes(tvnote.getText().toString());
+                        salesOrder.setUom(tvUom.getText().toString());
+                        if (open.isChecked())
+                            salesOrder.setStatus(open.getText().toString());
+                        if (closed.isChecked())
+                            salesOrder.setStatus(closed.getText().toString());
+                        if (pending.isChecked())
+                            salesOrder.setStatus(pending.getText().toString());
+                        if (delivered.isChecked()) {
+                            salesOrder.setStatus(delivered.getText().toString());
+                            salesOrder.setAdd(UHelper.getTimeInMili());
+                        }
+                        if (cancelled.isChecked())
+                            salesOrder.setStatus(cancelled.getText().toString());
 
                         showProgressBar(true, "Updating Document");
-                        documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId())
-                                .set(transaction, SetOptions.merge())
+                        documentReference.collection(Constants.SALESORDERS).document(salesOrder.getId())
+                                .set(salesOrder, SetOptions.merge())
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
@@ -274,7 +295,11 @@ public class DateReport extends AppCompatActivity {
                         tvprice.setEnabled(true);
                         tvamount.setEnabled(true);
                         tvnote.setEnabled(true);
-                        uom.setEnabled(true);
+                        tvUom.setEnabled(true);
+                        statusGroup.setBackgroundColor(Color.parseColor("#ffffff"));
+                        for (int i = 0; i < statusGroup.getChildCount(); i++) {
+                            statusGroup.getChildAt(i).setEnabled(true);
+                        }
                     }
                 });
 
@@ -289,16 +314,16 @@ public class DateReport extends AppCompatActivity {
 
     private void updateFooter() {
 
-        if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.CREDITSALES)) {
+        if (statusSpinner.getSelectedItem().toString().contains(Constants.CREDITSALES)) {
             tvin.setText("Credit SalesΣ\n" + out);
             tvout.setText("Receipt Σ\n" + in);
-        } else if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.CREDITPURCHASE)) {
+        } else if (statusSpinner.getSelectedItem().toString().contains(Constants.CREDITPURCHASE)) {
             tvin.setText("Credit PurchaseΣ\n" + in);
             tvout.setText("Payment Σ\n" + out);
-        } else if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.LOAN)) {
+        } else if (statusSpinner.getSelectedItem().toString().contains(Constants.LOAN)) {
             tvin.setText("Loan Σ\n" + in);
             tvout.setText("Payment Σ\n" + out);
-        } else if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.BANKING)) {
+        } else if (statusSpinner.getSelectedItem().toString().contains(Constants.BANKING)) {
             tvin.setText("Deposit Σ\n" + in);
             tvout.setText("Withdrawl Σ\n" + out);
         } else {
@@ -326,92 +351,10 @@ public class DateReport extends AppCompatActivity {
 
             }
         });
-    }
 
-    private void initiateLoadTransactionTypeData() {
-        transactionTypeList.add(Constants.CASHSALES);
-        transactionTypeList.add(Constants.CREDITSALES);
-        transactionTypeList.add(Constants.CASHPURCHASE);
-        transactionTypeList.add(Constants.CREDITPURCHASE);
-        transactionTypeList.add(Constants.EXPENSES);
-        transactionTypeList.add(Constants.LOAN);
-        transactionTypeList.add(Constants.BANKING);
+        showProgressBar(true, "Loading Account Names");
 
-
-        transactionTypeSpinner = findViewById(R.id.transactionTypeSpinner);
-        transactionTypeAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, transactionTypeList);
-        transactionTypeAdapter.setDropDownViewResource(R.layout.spinner_item);
-        transactionTypeSpinner.setAdapter(transactionTypeAdapter);
-
-        transactionTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                refreshRecyclerView();
-                setAccountTypeLoadAccountData(parent.getItemAtPosition(position).toString());
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-
-    }
-
-    private void setAccountTypeLoadAccountData(String tranType) {
-        switch (tranType) {
-            case Constants.CASHSALES:
-                refreshAccountSpinnerView();
-                Accounts cs = new Accounts();
-                cs.setName(Constants.CASHSALES);
-                cs.setId(Constants.CASHSALES);
-                accountsList.add(cs);
-                accountsAdapter.notifyDataSetChanged();
-                break;
-            case Constants.CASHPURCHASE:
-                refreshAccountSpinnerView();
-                Accounts cp = new Accounts();
-                cp.setName(Constants.CASHPURCHASE);
-                cp.setId(Constants.CASHPURCHASE);
-                accountsList.add(cp);
-                accountsAdapter.notifyDataSetChanged();
-                break;
-            case Constants.EXPENSES:
-                refreshAccountSpinnerView();
-                Accounts ep = new Accounts();
-                ep.setName(Constants.EXPENSES);
-                ep.setId(Constants.EXPENSES);
-                accountsList.add(ep);
-                accountsAdapter.notifyDataSetChanged();
-                break;
-            case Constants.BANKING:
-                refreshAccountSpinnerView();
-                Accounts bk = new Accounts();
-                bk.setName(Constants.BANKING);
-                bk.setId(Constants.BANKING);
-                accountsList.add(bk);
-                accountsAdapter.notifyDataSetChanged();
-                break;
-
-            case Constants.CREDITSALES:
-                refreshAccountSpinnerView();
-                loadAccountData(Constants.customer);
-                break;
-            case Constants.CREDITPURCHASE:
-                refreshAccountSpinnerView();
-                loadAccountData(Constants.vendor);
-                break;
-            case Constants.LOAN:
-                refreshAccountSpinnerView();
-                loadAccountData(Constants.lender);
-                break;
-        }
-
-    }
-
-    private void loadAccountData(String account) {
-        showProgressBar(true);
-        documentReference.collection(Constants.ACCOUNTS).whereEqualTo(account, true).get()
+        documentReference.collection(Constants.ACCOUNTS).whereEqualTo(Constants.customer, true).get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -427,6 +370,39 @@ public class DateReport extends AppCompatActivity {
                         showProgressBar(false);
                     }
                 });
+    }
+
+    private void initiateLoadTransactionTypeData() {
+        statusList.add(Constants.STATUS_OPEN);
+        statusList.add(Constants.STATUS_PENDING);
+        statusList.add(Constants.STATUS_DELIVERED);
+        statusList.add(Constants.STATUS_CLOSED);
+        statusList.add(Constants.STATUS_CANCELLED);
+
+
+        statusSpinner = findViewById(R.id.statusSpinner);
+        statusAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, statusList);
+        statusAdapter.setDropDownViewResource(R.layout.spinner_item);
+        statusSpinner.setAdapter(statusAdapter);
+
+        statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                TextView tv = findViewById(R.id.tvDate);
+                if (parent.getItemAtPosition(position).toString().contains(Constants.STATUS_DELIVERED)
+                        || parent.getItemAtPosition(position).toString().contains(Constants.STATUS_CLOSED)) {
+                    tv.setText("Delivered");
+                } else {
+                    tv.setText("Created");
+                }
+                refreshRecyclerView();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
     }
 
@@ -436,28 +412,28 @@ public class DateReport extends AppCompatActivity {
 
     private void loadTransactions() {
         refreshRecyclerView();
-        String tranType = transactionTypeSpinner.getSelectedItem().toString();
+        String status = statusSpinner.getSelectedItem().toString();
 
-        Query query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
-                .whereLessThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
-                .whereEqualTo(Constants.TRANSACTION, tranType)
+        Query query = documentReference.collection(Constants.SALESORDERS).whereGreaterThanOrEqualTo("created", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
+                .whereLessThanOrEqualTo("created", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
+                .whereEqualTo("status", status)
                 .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
-        showProgressBar(true, "Loading Transaction List");
+        showProgressBar(true, "Loading Sales Orders");
         query.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
                 if (queryDocumentSnapshots != null) {
                     for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
-                        Transaction transaction = q.toObject(Transaction.class);
-                        if (transaction.getAmount() > 0)
-                            in = in + transaction.getAmount();
-                        if (transaction.getAmount() < 0)
-                            out = out + transaction.getAmount();
+                        SalesOrder salesOrder = q.toObject(SalesOrder.class);
+                        if (salesOrder.getAmount() > 0)
+                            in = in + salesOrder.getAmount();
+                        if (salesOrder.getAmount() < 0)
+                            out = out + salesOrder.getAmount();
 
-                        balance = balance + transaction.getAmount();
+                        balance = balance + salesOrder.getAmount();
 
-                        transactionList.add(transaction);
-                        System.out.println(transaction.getItemName());
+                        salesOrderList.add(salesOrder);
+                        System.out.println(salesOrder.getItemName());
                     }
                 }
                 showProgressBar(false);
@@ -533,19 +509,13 @@ public class DateReport extends AppCompatActivity {
     }
 
     private void refreshRecyclerView() {
-        transactionList.clear();
+        salesOrderList.clear();
         recyclerViewAdapter.notifyDataSetChanged();
         in = 0.0;
         out = 0.0;
         balance = 0.0;
         updateFooter();
     }
-
-    private void refreshAccountSpinnerView() {
-        accountsList.clear();
-        accountsAdapter.notifyDataSetChanged();
-    }
-
 
     private void toast(String text) {
         Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);

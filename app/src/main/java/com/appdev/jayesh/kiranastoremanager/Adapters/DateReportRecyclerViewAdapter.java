@@ -18,7 +18,7 @@ public class DateReportRecyclerViewAdapter extends RecyclerView.Adapter<DateRepo
     public List<Transaction> transactionList;
 
     class MyViewHolder extends RecyclerView.ViewHolder {
-        TextView date, itemName, quantity, price, amount;
+        TextView date, itemName, quantity, price, amount, uom;
 
         MyViewHolder(final View view) {
             super(view);
@@ -27,6 +27,7 @@ public class DateReportRecyclerViewAdapter extends RecyclerView.Adapter<DateRepo
             quantity = view.findViewById(R.id.quantity);
             price = view.findViewById(R.id.price);
             amount = view.findViewById(R.id.amount);
+            uom = view.findViewById(R.id.uom);
 /*
             note.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -82,6 +83,7 @@ public class DateReportRecyclerViewAdapter extends RecyclerView.Adapter<DateRepo
         holder.quantity.setText(transaction.getQuantity() + "");
         holder.price.setText(transaction.getPrice() + "");
         holder.amount.setText(transaction.getAmount() + "");
+        holder.uom.setText(transaction.getUom() + "");
     }
 
 

@@ -92,6 +92,13 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:text="UOM" />
+
+            <TextView
+                style="@style/DateReportItemHeading"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="Price" />
 
             <TextView
@@ -101,13 +108,17 @@
                 android:layout_weight="1"
                 android:text="Amount" />
 
+            <TextView
+                android:layout_width="32dp"
+                android:layout_height="wrap_content" />
+
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/layoutItems"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
+
             android:layout_marginTop="10dp"
             android:layout_marginEnd="5dp"
             android:layout_marginBottom="5dp"
@@ -129,6 +140,16 @@
                 android:layout_weight="1"
                 android:hint="Quantity"
                 android:inputType="numberDecimal" />
+
+            <EditText
+                android:id="@+id/uom"
+                style="@style/EditTextItems"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Unit"
+                android:inputType="text" />
+
 
             <EditText
                 android:id="@+id/price"
