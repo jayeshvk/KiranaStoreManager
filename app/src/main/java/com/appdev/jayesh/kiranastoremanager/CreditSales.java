@@ -58,7 +58,7 @@ public class CreditSales extends AppCompatActivity {
     FirebaseUser user;
     FirebaseFirestore firebaseFirestore;
 
-    List<Transaction> transactionList = new ArrayList<>();
+    List<Transaction> transactionList = new ArrayList<Transaction>();
 
     private ProgressDialog pDialog;
     TransactionsRecyclerViewAdapter adapter;
@@ -72,7 +72,7 @@ public class CreditSales extends AppCompatActivity {
 
     DocumentReference documentReference;
 
-    List<Accounts> accountsList = new ArrayList<>();
+    List<Accounts> accountsList = new ArrayList<Accounts>();
 
     ArrayAdapter<Accounts> accountsArrayAdapter;
 
@@ -92,6 +92,7 @@ public class CreditSales extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_credit_sales);
+
         Intent intent = getIntent();
         title = intent.getStringExtra(Constants.TITLE);
         transactionType = intent.getStringExtra(Constants.TRANSACTIONTYPE);
@@ -361,7 +362,7 @@ public class CreditSales extends AppCompatActivity {
                 data.put(transactionTypeReverse, FieldValue.increment(t.getAmount()));
             else
                 data.put(transactionType, FieldValue.increment(t.getAmount()));
-
+            data.put("timeInMilli", UHelper.ddmmyyyyhmsTomili(datetime));
             DocumentReference doc = documentReference.collection(Constants.ACCOUNTS).document(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
             DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
 
@@ -399,7 +400,7 @@ public class CreditSales extends AppCompatActivity {
                     data.put(transactionTypeReverse, FieldValue.increment(t.getAmount()));
                 else
                     data.put(transactionType, FieldValue.increment(t.getAmount()));
-
+                data.put("timeInMilli", UHelper.ddmmyyyyhmsTomili(datetime));
                 DocumentReference doc = documentReference.collection(Constants.ACCOUNTS).document(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
                 DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
 
@@ -498,10 +499,11 @@ public class CreditSales extends AppCompatActivity {
                             in = 0;
                             out = 0;
                         }
+                        String type = transactionType.contains(Constants.FINANCEITEM) ? Constants.LOAN : transactionType;
 
                         new AlertDialog.Builder(view.getContext())
                                 .setTitle("Summary ")
-                                .setMessage(transactionType + " Rs : " + document.get(transactionType) + "\n" +
+                                .setMessage(type + " Rs : " + document.get(transactionType) + "\n" +
                                         transactionTypeReverse + " Rs : " + document.get(transactionTypeReverse) + "\n" +
                                         "Balance Rs : " + (in + out))
                                 .setNegativeButton(android.R.string.no, null)
@@ -555,5 +557,6 @@ public class CreditSales extends AppCompatActivity {
     public boolean isFreeItemAvailable() {
         return UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0;
     }
+
 
 }

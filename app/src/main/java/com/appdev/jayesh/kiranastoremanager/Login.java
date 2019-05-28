@@ -37,6 +37,7 @@ public class Login extends AppCompatActivity {
     ProgressDialog progressDialog;
     private static FirebaseFirestore firebaseFirestore;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,10 +65,12 @@ public class Login extends AppCompatActivity {
             }
         };
 
+
     }
 
     public void onStart() {
         super.onStart();
+        progressDialog.show();
         mAuth.addAuthStateListener(authStateListener);
     }
 
@@ -80,6 +83,7 @@ public class Login extends AppCompatActivity {
     }
 
     public void loginButton(View view) {
+
         String email = emailText.getText().toString();
         String pass = etPassword.getText().toString();
 
@@ -194,4 +198,6 @@ public class Login extends AppCompatActivity {
         android.os.Process.killProcess(android.os.Process.myPid());
         System.exit(0);
     }
+
+
 }

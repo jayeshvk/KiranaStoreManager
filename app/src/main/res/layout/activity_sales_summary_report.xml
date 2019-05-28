@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".DateReport">
+    tools:context=".SalesSummaryReport">
 
 
     <LinearLayout
@@ -70,7 +70,7 @@
             android:layout_gravity="center_vertical"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
-            android:onClick="loadTransaction"
+            android:onClick="load"
             android:src="@drawable/ic_search_black_24dp" />
 
     </LinearLayout>
@@ -88,27 +88,7 @@
             android:src="@drawable/ic_format_list_bulleted_black_24dp" />
 
         <Spinner
-            android:id="@+id/transactionTypeSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/spinnerLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/layoutdatetime"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="5dp">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:src="@drawable/ic_person_black_24dp" />
-
-        <Spinner
-            android:id="@+id/accountSpinner"
+            android:id="@+id/summaryType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
     </LinearLayout>
@@ -129,35 +109,6 @@
             android:layout_weight="1"
             android:gravity="start"
             android:text="Date" />
-
-        <TextView
-            style="@style/DateReportItemHeading"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="start"
-            android:text="Item" />
-
-        <TextView
-            style="@style/DateReportItemHeading"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.75"
-            android:text="Qty" />
-
-        <TextView
-            style="@style/DateReportItemHeading"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.75"
-            android:text="UOM" />
-
-        <TextView
-            style="@style/DateReportItemHeading"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.75"
-            android:text="Price" />
 
         <TextView
             style="@style/DateReportItemHeading"
@@ -190,23 +141,20 @@
             style="@style/DateReportFooter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Footer" />
+            android:layout_weight="1" />
 
         <TextView
             android:id="@+id/out"
             style="@style/DateReportFooter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Footer" />
+            android:layout_weight="1" />
 
         <TextView
             android:id="@+id/balance"
             style="@style/DateReportFooter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Footer" />
+            android:layout_weight="1" />
     </LinearLayout>
 </LinearLayout>

@@ -8,21 +8,24 @@
     tools:context=".MainActivity">
 
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/userTv"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:paddingTop="120dp">
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="user"
+        android:textColor="@color/design_default_color_primary_dark" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:stretchColumns="4">
+
+        <TableRow
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+            android:gravity="center">
 
             <ImageButton
                 android:id="@+id/cashSales"
@@ -37,13 +40,32 @@
                 android:layout_height="wrap_content"
                 android:onClick="creditSales"
                 app:srcCompat="@drawable/ic_credit_sale" />
-        </LinearLayout>
 
-        <LinearLayout
+        </TableRow>
+
+        <TableRow
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:layout_height="match_parent"
+            android:gravity="center">
+
+            <TextView
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CASH SALES" />
+
+            <TextView
+                android:id="@+id/textView3"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CREDIT SALES" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center">
 
             <ImageButton
                 android:id="@+id/cashPurchase"
@@ -58,38 +80,32 @@
                 android:layout_height="wrap_content"
                 android:onClick="creditPurchase"
                 app:srcCompat="@drawable/ic_credpur" />
+        </TableRow>
 
-
-        </LinearLayout>
-
-        <LinearLayout
+        <TableRow
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:layout_height="match_parent"
+            android:gravity="center">
 
-            <ImageButton
-                android:id="@+id/expenses"
+            <TextView
+                android:id="@+id/textView4"
+                style="@style/label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="expenses"
-                app:srcCompat="@drawable/ic_payments" />
+                android:text="CASH PURCHASE" />
 
-            <ImageButton
-                android:id="@+id/banking"
+            <TextView
+                android:id="@+id/textView5"
+                style="@style/label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="banking"
-                app:srcCompat="@drawable/ic_bank" />
+                android:text="CREDIT PURCHASE" />
+        </TableRow>
 
-
-        </LinearLayout>
-
-        <LinearLayout
+        <TableRow
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:layout_height="match_parent"
+            android:gravity="center">
 
             <ImageButton
                 android:id="@+id/salesOrder"
@@ -104,8 +120,68 @@
                 android:layout_height="wrap_content"
                 android:onClick="loan"
                 app:srcCompat="@drawable/ic_loan" />
-        </LinearLayout>
-    </LinearLayout>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/textView7"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SALES ORDER" />
+
+            <TextView
+                android:id="@+id/textView6"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LOAN" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/banking"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="banking"
+                app:srcCompat="@drawable/ic_bank" />
+
+            <ImageButton
+                android:id="@+id/expenses"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="expenses"
+                app:srcCompat="@drawable/ic_payments" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/textView8"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BANKING" />
+
+            <TextView
+                android:id="@+id/textView9"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="EXPENSES" />
+        </TableRow>
+    </TableLayout>
 
     <android.support.design.widget.NavigationView
         android:id="@+id/navigation_view"

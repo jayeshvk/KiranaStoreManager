@@ -1,6 +1,6 @@
 package com.appdev.jayesh.kiranastoremanager.Model;
 
-public class Transaction {
+public class Transaction implements Comparable<Transaction> {
 
     private String accountName;
 
@@ -134,4 +134,11 @@ public class Transaction {
     public void setNotes(String notes) {
         this.notes = notes;
     }
+
+    @Override
+    public int compareTo(Transaction o) {
+        return Long.compare(timeInMilli, o.timeInMilli);
+
+    }
+
 }

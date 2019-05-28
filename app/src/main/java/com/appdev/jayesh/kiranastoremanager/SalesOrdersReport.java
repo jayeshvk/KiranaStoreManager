@@ -37,11 +37,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.annotations.Nullable;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -80,6 +77,8 @@ public class SalesOrdersReport extends AppCompatActivity {
     TextView tvin;
     TextView tvout;
     TextView tvbalance;
+
+    Accounts selectedAccount = new Accounts();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -344,6 +343,7 @@ public class SalesOrdersReport extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 refreshRecyclerView();
+                loadTransactions();
             }
 
             @Override
@@ -353,7 +353,9 @@ public class SalesOrdersReport extends AppCompatActivity {
         });
 
         showProgressBar(true, "Loading Account Names");
-
+        Accounts all = new Accounts();
+        all.setName(Constants.ALL);
+        accountsList.add(all);
         documentReference.collection(Constants.ACCOUNTS).whereEqualTo(Constants.customer, true).get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -396,6 +398,8 @@ public class SalesOrdersReport extends AppCompatActivity {
                     tv.setText("Created");
                 }
                 refreshRecyclerView();
+                if (statusSpinner.getSelectedItem() != null)
+                    loadTransactions();
             }
 
             @Override
@@ -413,15 +417,24 @@ public class SalesOrdersReport extends AppCompatActivity {
     private void loadTransactions() {
         refreshRecyclerView();
         String status = statusSpinner.getSelectedItem().toString();
+        String accountName = accountSpinner.getSelectedItem() != null ? accountSpinner.getSelectedItem().toString() : "";
+        Query query = null;
+        if (accountsList.size() <= 0 || accountName.length() <= 0)
+            return;
 
-        Query query = documentReference.collection(Constants.SALESORDERS).whereGreaterThanOrEqualTo("created", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
-                .whereLessThanOrEqualTo("created", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
-                .whereEqualTo("status", status)
-                .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
+        if (accountName.contains(Constants.ALL)) {
+            query = documentReference.collection(Constants.SALESORDERS).whereGreaterThanOrEqualTo("created", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
+                    .whereLessThanOrEqualTo("created", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
+                    .whereEqualTo("status", status);
+        } else
+            query = documentReference.collection(Constants.SALESORDERS).whereGreaterThanOrEqualTo("created", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
+                    .whereLessThanOrEqualTo("created", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
+                    .whereEqualTo("status", status)
+                    .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
         showProgressBar(true, "Loading Sales Orders");
-        query.addSnapshotListener(new EventListener<QuerySnapshot>() {
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 if (queryDocumentSnapshots != null) {
                     for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
                         SalesOrder salesOrder = q.toObject(SalesOrder.class);
@@ -433,7 +446,6 @@ public class SalesOrdersReport extends AppCompatActivity {
                         balance = balance + salesOrder.getAmount();
 
                         salesOrderList.add(salesOrder);
-                        System.out.println(salesOrder.getItemName());
                     }
                 }
                 showProgressBar(false);

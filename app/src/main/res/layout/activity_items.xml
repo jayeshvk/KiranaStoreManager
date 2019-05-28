@@ -111,6 +111,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="10dp"
-        android:scrollbars="vertical" />
+        android:scrollbars="vertical"
+        android:paddingStart="5dp"
+        android:paddingEnd="5dp"/>
 
 </LinearLayout>

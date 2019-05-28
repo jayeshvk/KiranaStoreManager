@@ -1,5 +1,6 @@
 package com.appdev.jayesh.kiranastoremanager;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,10 +13,14 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.appdev.jayesh.kiranastoremanager.ExpandableMenu.ExpandableListAdapter;
 import com.appdev.jayesh.kiranastoremanager.ExpandableMenu.ExpandedMenuModel;
+import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -34,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     List<ExpandedMenuModel> listDataHeader;
     HashMap<ExpandedMenuModel, List<String>> listDataChild;
     private int lastExpandedPosition = -1;
+    ProgressDialog progressDialog;
 
     FirebaseFirestore db;
 
@@ -45,8 +51,15 @@ public class MainActivity extends AppCompatActivity {
         setupNavigationDrawer();
         PrepareMenu();
         populateExpandableList();
-
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
         db = FirebaseFirestore.getInstance();
+
+        TextView userTv = findViewById(R.id.userTv);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null)
+            userTv.setText("Current User : " + FirebaseAuth.getInstance().getCurrentUser().getEmail());
+        else
+            startActivity(new Intent(MainActivity.this, SignIn.class));
 
     }
 
@@ -100,8 +113,10 @@ public class MainActivity extends AppCompatActivity {
         ExpandedMenuModel report = new ExpandedMenuModel("Report", R.drawable.ic_account_circle, true);
         listDataHeader.add(report);
         List<String> reportItems = new ArrayList<>();
-        reportItems.add("Date Report");
         reportItems.add("Sales Orders");
+        reportItems.add("Date Report");
+        reportItems.add("Item Summary");
+        reportItems.add("Sales Summary");
         listDataChild.put(report, reportItems);
 
         ExpandedMenuModel logout = new ExpandedMenuModel("Logout", R.drawable.ic_account_circle, false);
@@ -171,23 +186,34 @@ public class MainActivity extends AppCompatActivity {
             case "Settings":
                 mDrawerLayout.closeDrawer(Gravity.START);
                 break;
-            case "Online Backup":
+            case "Item Summary":
                 mDrawerLayout.closeDrawer(Gravity.START);
+                startActivity(new Intent(MainActivity.this, ItemSummaryReport.class));
 
                 break;
-            case "Online Restore":
+            case "Days Summary":
                 mDrawerLayout.closeDrawer(Gravity.START);
+                startActivity(new Intent(MainActivity.this, DaysSummaryReport.class));
 
                 break;
-            case "Selective Restore":
+            case "Sales Summary":
                 mDrawerLayout.closeDrawer(Gravity.START);
+                startActivity(new Intent(MainActivity.this, SalesSummaryReport.class));
+
 
                 break;
             case "Logout":
-                mDrawerLayout.closeDrawer(Gravity.START);
-                FirebaseAuth mAuth = FirebaseAuth.getInstance();
-                mAuth.signOut();
-                startActivity(new Intent(MainActivity.this, Login.class));
+                progressDialog.show();
+                AuthUI.getInstance()
+                        .signOut(this)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            public void onComplete(@NonNull Task<Void> task) {
+                                progressDialog.cancel();
+                                if (task.isSuccessful())
+                                    startActivity(new Intent(MainActivity.this, SignIn.class));
+                                else toast("Sign out failed, please try again");
+                            }
+                        });
                 break;
         }
     }
@@ -272,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void loan(View view) {
         Intent intent = new Intent(MainActivity.this, CreditSales.class);
-        intent.putExtra(Constants.TRANSACTIONTYPE, Constants.LOAN);
+        intent.putExtra(Constants.TRANSACTIONTYPE, Constants.FINANCEITEM);
         intent.putExtra(Constants.TRANSACTIONTYPEREVERSE, Constants.LOANPAYMENT);
         intent.putExtra(Constants.ACCOUNTS, Constants.lender);
         intent.putExtra(Constants.TITLE, "Loan Management");

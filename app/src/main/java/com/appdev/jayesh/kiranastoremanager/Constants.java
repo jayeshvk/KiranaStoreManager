@@ -9,6 +9,8 @@ public class Constants {
     public static final String EXPENSES = "EXPENSES";
     public static final String LOAN = "LOAN";
     public static final String VENDORPAYMENTS = "VENDORPAYMENTS";
+    public static final String LOANPAYMENT = "LOANPAYMENT";
+
     public static final String CUSTOMER = "CUSTOMER";
     public static final String LENDER = "LENDER";
     public static final String lender = "lender";
@@ -32,7 +34,6 @@ public class Constants {
     public static final String WITHDRAWL = "WITHDRAWL";
     public static final String BANKING = "BANKING";
     public static final String FINANCEITEM = "FINANCEITEM";
-    public static final String LOANPAYMENT = "LOANPAYMENT";
     public static final String SIGN = "SIGN";
 
     public static final String STATUS_OPEN = "open";
@@ -40,6 +41,10 @@ public class Constants {
     public static final String STATUS_PENDING = "pending";
     public static final String STATUS_CANCELLED = "cancelled";
     public static final String STATUS_CLOSED = "closed";
+    public static final String BankBalance = "BankBalance";
+    public static final String Seperator = "&";
+    public static final String ALL = "ALL";
+
 
 
 }

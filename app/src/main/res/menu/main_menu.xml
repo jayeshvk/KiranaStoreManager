@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/dailyView"
+        android:checkable="true"
+        android:icon="@drawable/ic_bank"
+        android:title="Daily View"
+        app:showAsAction="never"
+        android:visible="true"/>
+    <item
+        android:id="@+id/monthlyView"
+        android:checkable="true"
+        android:title="Monthly View"
+        app:showAsAction="never"
+        android:visible="true"/>
+</menu>

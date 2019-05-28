@@ -8,6 +8,9 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_date_report">DateReport</string>
+    <string name="title_activity_date_report">Date Report</string>
+    <string name="title_activity_item_summary">Item Summary</string>
+    <string name="title_activity_sales_summary">Sales Summary</string>
+    <string name="title_activity_sales_order_report">Sales Order Report</string>
 
 </resources>

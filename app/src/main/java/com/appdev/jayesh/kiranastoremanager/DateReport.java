@@ -35,18 +35,19 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.annotations.Nullable;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DateReport extends AppCompatActivity {
 
@@ -78,6 +79,8 @@ public class DateReport extends AppCompatActivity {
     TextView tvin;
     TextView tvout;
     TextView tvbalance;
+
+    WriteBatch batch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,8 +125,15 @@ public class DateReport extends AppCompatActivity {
             public void onClick(View view, final int position) {
                 //on touch of the item, set data on the scree
                 final Transaction transaction = transactionList.get(position);
-
-                System.out.println("P : " + position + " sixe" + transactionList.size());
+                final double oldAmount = transaction.getAmount();
+                int sign;
+                //in case of credit sales, cash puchase, loan payment, vend payment,expenses
+                if (transaction.getTransactionType().contains(Constants.CASHSALES) ||
+                        transaction.getTransactionType().contains(Constants.LOAN) ||
+                        transaction.getTransactionType().contains(Constants.CUSTOMERPAYMENTS) ||
+                        transaction.getTransactionType().contains(Constants.CREDITPURCHASE))
+                    sign = +1;
+                else sign = -1;
 
                 // inflate the layout of the popup window
                 LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -139,7 +149,7 @@ public class DateReport extends AppCompatActivity {
                 tvItemName.setText(transaction.getItemName());
                 tvquantity.setText(transaction.getQuantity() + "");
                 tvprice.setText(transaction.getPrice() + "");
-                tvamount.setText(transaction.getAmount() + "");
+                tvamount.setText(transaction.getAmount() * sign + "");
                 tvnote.setText(transaction.getNotes());
                 uom.setText(transaction.getUom());
 
@@ -202,7 +212,7 @@ public class DateReport extends AppCompatActivity {
                 });
 
                 Button delete = popupView.findViewById(R.id.delete);
-                Button update = popupView.findViewById(R.id.update);
+                final Button update = popupView.findViewById(R.id.update);
                 Button cancel = popupView.findViewById(R.id.cancel);
                 Button edit = popupView.findViewById(R.id.edit);
 
@@ -210,55 +220,36 @@ public class DateReport extends AppCompatActivity {
                 delete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        showProgressBar(true, "Deleting Document");
-                        documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId())
-                                .delete()
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        showProgressBar(false);
-                                        toast("Successfully deleted!");
-                                        popupWindow.dismiss();
-                                        loadTransactions();
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        showProgressBar(false);
-                                        toast("Error deleting document" + e);
-                                    }
-                                });
+                        batch = firebaseFirestore.batch();
+                        DocumentReference del = documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId());
+                        batch.delete(del);
+                        updatePosting(transaction, oldAmount, 0);
+                        updateFooter();
+                        transactionList.remove(position);
+                        popupWindow.dismiss();
+                        batchWrite();
+
                     }
                 });
+                final int finalSign = sign;
                 update.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        if (UHelper.parseDouble(tvamount.getText().toString()) < 0)
+                            return;
+                        batch = firebaseFirestore.batch();
                         transaction.setQuantity(UHelper.parseDouble(tvquantity.getText().toString()));
                         transaction.setPrice(UHelper.parseDouble(tvprice.getText().toString()));
-                        transaction.setAmount(UHelper.parseDouble(tvamount.getText().toString()));
+                        transaction.setAmount(UHelper.parseDouble(tvamount.getText().toString()) * finalSign);
                         transaction.setNotes(tvnote.getText().toString());
                         transaction.setUom(uom.getText().toString());
 
-                        showProgressBar(true, "Updating Document");
-                        documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId())
-                                .set(transaction, SetOptions.merge())
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        showProgressBar(false);
-                                        toast("Successfully Updated!");
-                                        popupWindow.dismiss();
-                                        loadTransactions();
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        showProgressBar(false);
-                                        toast("Error updating document" + e);
-                                    }
-                                });
+                        DocumentReference updateDocument = documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId());
+                        batch.set(updateDocument, transaction, SetOptions.merge());
+                        updatePosting(transaction, oldAmount, finalSign);
+                        transactionList.set(position, transaction);
+                        popupWindow.dismiss();
+                        batchWrite();
                     }
                 });
                 cancel.setOnClickListener(new View.OnClickListener() {
@@ -275,6 +266,7 @@ public class DateReport extends AppCompatActivity {
                         tvamount.setEnabled(true);
                         tvnote.setEnabled(true);
                         uom.setEnabled(true);
+                        update.setEnabled(true);
                     }
                 });
 
@@ -285,6 +277,50 @@ public class DateReport extends AppCompatActivity {
 
             }
         }));
+    }
+
+    private void updatePosting(Transaction transaction, double oldAmount, int sign) {
+
+        double diff;
+
+//sign = 0 to handle the deletion of an entry
+
+        //-1 in case of liability and +1 in case of asset
+        if (transaction.getAmount() < 0)
+            diff = -(oldAmount - transaction.getAmount());
+        else if (transaction.getAmount() > 0)
+            diff = transaction.getAmount() - oldAmount;
+        else diff = transaction.getAmount();
+
+
+        if (transaction.getTransaction().contains(Constants.BANKING)) {
+            DocumentReference accountEntryForBanking = documentReference.collection(Constants.POSTINGS).document(Constants.BankBalance);
+            Map<String, Object> data = new HashMap<>();
+            data.put(Constants.BankBalance, FieldValue.increment(diff));
+            batch.set(accountEntryForBanking, data, SetOptions.merge());
+
+        } else {
+            DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(UHelper.militoddmmyyyy(transaction.getTimeInMilli()));
+            Map<String, Object> data = new HashMap<>();
+            if (sign == 0)
+                data.put(transaction.getTransactionType(), FieldValue.increment(-diff));
+            else
+                data.put(transaction.getTransactionType(), FieldValue.increment(diff));
+
+            batch.set(accountEntry, data, SetOptions.merge());
+
+            if (!(transaction.getTransaction().contains(Constants.CASHSALES) || !transaction.getTransaction().contains(Constants.CASHPURCHASE))) {
+                DocumentReference doc = documentReference.collection(Constants.ACCOUNTS).document(transaction.getAccountId());
+                Map<String, Object> docdata = new HashMap<>();
+                docdata.put(transaction.getTransactionType(), FieldValue.increment(diff));
+                batch.set(doc, docdata, SetOptions.merge());
+            }
+        }
+        if (oldAmount > 0)
+            in = in + (diff * sign);
+        if (transaction.getAmount() < 0)
+            out = out + (diff * sign);
+        balance = balance + (diff * sign);
     }
 
     private void updateFooter() {
@@ -306,7 +342,7 @@ public class DateReport extends AppCompatActivity {
             tvout.setText("-\n" + out);
         }
 
-        tvbalance.setText("Balance Σ\n" + balance);
+        tvbalance.setText("Balance Σ\n" + (out + in));
 
     }
 
@@ -427,7 +463,6 @@ public class DateReport extends AppCompatActivity {
                         showProgressBar(false);
                     }
                 });
-
     }
 
     public void loadTransaction(View view) {
@@ -437,32 +472,40 @@ public class DateReport extends AppCompatActivity {
     private void loadTransactions() {
         refreshRecyclerView();
         String tranType = transactionTypeSpinner.getSelectedItem().toString();
+        showProgressBar(true, "Loading Transaction List");
 
         Query query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
                 .whereLessThanOrEqualTo("timeInMilli", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
                 .whereEqualTo(Constants.TRANSACTION, tranType)
                 .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
-        showProgressBar(true, "Loading Transaction List");
-        query.addSnapshotListener(new EventListener<QuerySnapshot>() {
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 if (queryDocumentSnapshots != null) {
                     for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
                         Transaction transaction = q.toObject(Transaction.class);
+                        System.out.println(transaction.getTimeInMilli());
                         if (transaction.getAmount() > 0)
                             in = in + transaction.getAmount();
                         if (transaction.getAmount() < 0)
                             out = out + transaction.getAmount();
-
                         balance = balance + transaction.getAmount();
-
                         transactionList.add(transaction);
                         System.out.println(transaction.getItemName());
                     }
+                    showProgressBar(false);
+                    recyclerViewAdapter.notifyDataSetChanged();
+                    updateFooter();
+                    showProgressBar(false);
                 }
+            }
+        });
+
+        query.get().addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
                 showProgressBar(false);
-                recyclerViewAdapter.notifyDataSetChanged();
-                updateFooter();
+                toast("Failes :" + e);
             }
         });
     }
@@ -546,7 +589,6 @@ public class DateReport extends AppCompatActivity {
         accountsAdapter.notifyDataSetChanged();
     }
 
-
     private void toast(String text) {
         Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 0);
@@ -563,6 +605,27 @@ public class DateReport extends AppCompatActivity {
                 else hidepDialog();
             }
         });
+    }
+
+    public void batchWrite() {
+        showProgressBar(true, "Please wait, Updating Data");
+        batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                showProgressBar(false);
+                toast("Data Updated");
+                recyclerViewAdapter.notifyDataSetChanged();
+                updateFooter();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                showProgressBar(false);
+                toast("Failed to update, please enter again!");
+            }
+        });
+        batch = null;
+
     }
 
 

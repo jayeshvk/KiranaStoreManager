@@ -28,36 +28,6 @@ public class DateReportRecyclerViewAdapter extends RecyclerView.Adapter<DateRepo
             price = view.findViewById(R.id.price);
             amount = view.findViewById(R.id.amount);
             uom = view.findViewById(R.id.uom);
-/*
-            note.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AlertDialog.Builder alert = new AlertDialog.Builder(view.getContext());
-                    alert.setTitle("Notes");
-                    alert.setIcon(R.drawable.ic_event_note_black_24dp);
-                    final EditText input = new EditText(view.getContext());
-                    input.setText(transactionList.get(getAdapterPosition()).getNotes());
-                    alert.setView(input);
-                    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                            String text = input.getText().toString();
-                            transactionList.get(getAdapterPosition()).setNotes(text);
-                            if (text.trim().length() > 0) {
-                                note.setTextColor(Color.GREEN);
-                            } else
-                                note.setTextColor(Color.BLACK);
-
-                        }
-                    });
-                    alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                        }
-                    });
-                    alert.show();
-                }
-            });
-*/
-
         }
 
     }
@@ -83,7 +53,8 @@ public class DateReportRecyclerViewAdapter extends RecyclerView.Adapter<DateRepo
         holder.quantity.setText(transaction.getQuantity() + "");
         holder.price.setText(transaction.getPrice() + "");
         holder.amount.setText(transaction.getAmount() + "");
-        holder.uom.setText(transaction.getUom() + "");
+        String uom = transaction.getUom() != null ? transaction.getUom() : "*";
+        holder.uom.setText(uom);
     }
 
 

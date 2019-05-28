@@ -12,11 +12,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name=".DateReport"
-            android:label="@string/title_activity_date_report"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".Login"
+            android:name=".SignIn"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,10 +41,6 @@
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Expenses"
-            android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".Banking"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" />
@@ -59,7 +51,23 @@
         <activity
             android:name=".SalesOrdersReport"
             android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_sales_order_report"/>
+        <activity
+            android:name=".ItemSummaryReport"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_item_summary"/>
+        <activity
+            android:name=".DateReport"
+            android:label="@string/title_activity_date_report"
+            android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".SalesSummaryReport"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_sales_summary" />
     </application>
 
 </manifest>

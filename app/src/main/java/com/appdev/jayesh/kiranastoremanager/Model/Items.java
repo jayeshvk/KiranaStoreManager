@@ -1,5 +1,7 @@
 package com.appdev.jayesh.kiranastoremanager.Model;
 
+import android.support.annotation.NonNull;
+
 import java.util.HashMap;
 
 public class Items {
@@ -51,5 +53,22 @@ public class Items {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    //to display object as a string in spinner
+    @NonNull
+    @Override
+    public String toString() {
+        return Name;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Items) {
+            Items c = (Items) obj;
+            if (c.getName().equals(Name) && c.getId() == id) return true;
+        }
+
+        return false;
     }
 }

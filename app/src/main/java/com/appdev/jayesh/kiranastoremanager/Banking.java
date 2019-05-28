@@ -40,7 +40,7 @@ import javax.annotation.Nullable;
 
 public class Banking extends AppCompatActivity {
 
-    private static final String TAG = Constants.EXPENSES;
+    private static final String TAG = Constants.BANKING;
 
     FirebaseAuth mAuth;
     FirebaseUser user;
@@ -73,7 +73,7 @@ public class Banking extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
         firebaseFirestore = FirebaseFirestore.getInstance();
-        documentReference = firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid());
+        documentReference = firebaseFirestore.collection(Constants.USERS).document(user.getUid());
 
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Please wait...");
@@ -97,7 +97,7 @@ public class Banking extends AppCompatActivity {
     }
 
     private void setListner() {
-        documentReference.collection(Constants.BANKING).document(Constants.DEPOSIT).
+        documentReference.collection(Constants.POSTINGS).document(Constants.BankBalance).
                 addSnapshotListener(new EventListener<DocumentSnapshot>() {
                     @Override
                     public void onEvent(@Nullable DocumentSnapshot snapshot,
@@ -108,32 +108,7 @@ public class Banking extends AppCompatActivity {
                         }
 
                         if (snapshot != null && snapshot.exists()) {
-                            deposit = UHelper.parseDouble(snapshot.getData().get(Constants.DEPOSIT) + "");
-
-                            Log.d(TAG, "Current data: " + snapshot.get(Constants.DEPOSIT));
-                            //deposit = (Double) snapshot.get(Constants.WITHDRAWL);
-
-                        } else {
-                            Log.d(TAG, "Current data: null");
-                        }
-                    }
-                });
-        documentReference.collection(Constants.BANKING).document(Constants.WITHDRAWL).
-                addSnapshotListener(new EventListener<DocumentSnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable DocumentSnapshot snapshot,
-                                        @Nullable FirebaseFirestoreException e) {
-                        if (e != null) {
-                            Log.w(TAG, "Listen failed.", e);
-                            return;
-                        }
-
-                        if (snapshot != null && snapshot.exists()) {
-                            withdrawl = UHelper.parseDouble(snapshot.getData().get(Constants.WITHDRAWL) + "");
-                            Log.d(TAG, "Current data: " + snapshot.get(Constants.WITHDRAWL));
-                            //withdrawl = (Double) snapshot.get(Constants.WITHDRAWL);
-                            balance.setText(String.format("%.2f", (deposit - withdrawl)));
-
+                            balance.setText(snapshot.getData().get(Constants.BankBalance) + "");
                         } else {
                             Log.d(TAG, "Current data: null");
                         }
@@ -185,11 +160,11 @@ public class Banking extends AppCompatActivity {
             dTransaction.setAccountId(Constants.BANKING);
 
             //Update Postings for Days Sales
-            DocumentReference depoAccountEntry = documentReference.collection(Constants.BANKING).document(Constants.DEPOSIT);
+            DocumentReference depoAccountEntry = documentReference.collection(Constants.POSTINGS).document(Constants.BankBalance);
             Map<String, Object> data = new HashMap<>();
-            data.put(Constants.DEPOSIT, FieldValue.increment(dTransaction.getAmount()));
+            data.put(Constants.BankBalance, FieldValue.increment(dTransaction.getAmount()));
             data.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
-
+            data.put("timeInMilli", UHelper.ddmmyyyyhmsTomili(datetime));
             batch.set(depositDocument, dTransaction);
             batch.set(depoAccountEntry, data, SetOptions.merge());
         }
@@ -207,17 +182,17 @@ public class Banking extends AppCompatActivity {
             wTransaction.setId(withdrawlDocument.getId());
             if (wComment.length() > 0)
                 wTransaction.setNotes(wComment);
-            wTransaction.setAmount(UHelper.parseDouble(wAmount));
+            wTransaction.setAmount(UHelper.parseDouble(wAmount) * -1);
             wTransaction.setTimestamp(System.currentTimeMillis());
             wTransaction.setTransaction(Constants.BANKING);
             wTransaction.setAccountId(Constants.BANKING);
 
             //Update Postings for withdrawl
-            DocumentReference wthdrawAccountEntry = documentReference.collection(Constants.BANKING).document(Constants.WITHDRAWL);
+            DocumentReference wthdrawAccountEntry = documentReference.collection(Constants.POSTINGS).document(Constants.BankBalance);
             Map<String, Object> data = new HashMap<>();
-            data.put(Constants.WITHDRAWL, FieldValue.increment(wTransaction.getAmount()));
+            data.put(Constants.BankBalance, FieldValue.increment(wTransaction.getAmount()));
             data.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
-
+            data.put("timeInMilli", UHelper.ddmmyyyyhmsTomili(datetime));
             batch.set(withdrawlDocument, wTransaction);
             batch.set(wthdrawAccountEntry, data, SetOptions.merge());
         }

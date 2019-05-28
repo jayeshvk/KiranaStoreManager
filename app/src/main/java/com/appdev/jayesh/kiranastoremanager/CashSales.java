@@ -274,7 +274,7 @@ public class CashSales extends AppCompatActivity {
                 Map<String, Object> data = new HashMap<>();
                 data.put(transactionType, FieldValue.increment(t.getAmount()));
                 data.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
-
+                data.put("timeInMilli", UHelper.ddmmyyyyhmsTomili(datetime));
                 batch.set(newDocument, t);
                 batch.set(accountEntry, data, SetOptions.merge());
             }
@@ -306,7 +306,7 @@ public class CashSales extends AppCompatActivity {
             final Map<String, Object> data = new HashMap<>();
             data.put(transactionType, FieldValue.increment(t.getAmount()));
             data.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
-
+            data.put("timeInMilli", UHelper.ddmmyyyyhmsTomili(datetime));
             batch.set(newDocument, t);
             batch.set(accountEntry, data, SetOptions.merge());
         }
