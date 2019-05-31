@@ -23,19 +23,15 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 public class ItemsActivity extends AppCompatActivity {
 
@@ -99,8 +95,21 @@ public class ItemsActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         showProgressBar(true);
-        firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS)
-                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+        firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if (queryDocumentSnapshots != null) {
+                    for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
+                        Items item = q.toObject(Items.class);
+                        System.out.println(item);
+                        itemsList.add(item);
+                    }
+                    showProgressBar(false);
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        });
+           /*     .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException e) {
                         if (e != null) {
@@ -150,7 +159,7 @@ public class ItemsActivity extends AppCompatActivity {
                         showProgressBar(false);
                     }
                 });
-
+*/
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
             public void onClick(View view, int position) {
@@ -164,7 +173,7 @@ public class ItemsActivity extends AppCompatActivity {
                 cashPurchase.setChecked(item.getUsedFor().get(Constants.CASHPURCHASE));
                 creditPurchase.setChecked(item.getUsedFor().get(Constants.CREDITPURCHASE));
                 expenses.setChecked(item.getUsedFor().get(Constants.EXPENSES));
-                financeItem.setChecked(item.getUsedFor().get(Constants.FINANCEITEM));
+                financeItem.setChecked(item.getUsedFor().get(Constants.LOAN));
 
                 itemName.setTag(item.getId());
                 itemPrice.setTag(position);
@@ -195,7 +204,7 @@ public class ItemsActivity extends AppCompatActivity {
         usedFor.put(Constants.CASHPURCHASE, cashPurchase.isChecked());
         usedFor.put(Constants.CREDITPURCHASE, creditPurchase.isChecked());
         usedFor.put(Constants.EXPENSES, expenses.isChecked());
-        usedFor.put(Constants.FINANCEITEM, financeItem.isChecked());
+        usedFor.put(Constants.LOAN, financeItem.isChecked());
         item.setUsedFor(usedFor);
 
         if (name.length() == 0)
@@ -204,12 +213,15 @@ public class ItemsActivity extends AppCompatActivity {
         //update item if item has been selected before
         //if (globalItemPosition != -1 && globalITemId != null) {
         if (itemName.getTag() != null) {
+            showProgressBar(true);
             firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ITEMS).document(itemName.getTag().toString())
                     .set(item, SetOptions.merge())
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
+                            showProgressBar(false);
                             toast("Item " + item.getName() + " updated successfully");
+                            itemsList.set(UHelper.parseInt(itemPrice.getTag().toString()), item);
                             resetView();
 
                         }
@@ -217,6 +229,7 @@ public class ItemsActivity extends AppCompatActivity {
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
+                            showProgressBar(false);
                             Log.d(TAG, "Error writing document", e);
                         }
                     });
@@ -230,12 +243,15 @@ public class ItemsActivity extends AppCompatActivity {
         documentItem.set(item, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
+                showProgressBar(false);
                 toast("Item " + item.getName() + " added successfully");
+                itemsList.add(item);
                 resetView();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
+                showProgressBar(false);
                 Log.d(TAG, "Error adding document try again " + e);
 
             }
@@ -245,18 +261,22 @@ public class ItemsActivity extends AppCompatActivity {
     public void delete(View view) {
         //  if (globalItemPosition != -1 && globalITemId != null) {
         if (itemName.getTag() != null) {
-            String[] values = itemName.getTag().toString().split("-", 2);
+            showProgressBar(true);
             firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS).document(itemName.getTag().toString())
                     .delete()
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
+                            showProgressBar(false);
                             Log.d(TAG, "DocumentSnapshot successfully deleted!");
+                            itemsList.remove(UHelper.parseInt(itemPrice.getTag().toString()));
+                            resetView();
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
+                            showProgressBar(false);
                             Log.w(TAG, "Error deleting document", e);
                         }
                     });

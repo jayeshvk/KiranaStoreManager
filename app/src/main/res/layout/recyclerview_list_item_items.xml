@@ -60,7 +60,7 @@
             android:text="Credit Purchase" />
 
         <CheckBox
-            android:id="@+id/otherPayments"
+            android:id="@+id/expenses"
             style="@style/DisabledCheckbox"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

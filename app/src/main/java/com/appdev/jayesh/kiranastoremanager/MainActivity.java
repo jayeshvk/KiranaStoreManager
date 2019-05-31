@@ -298,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void loan(View view) {
         Intent intent = new Intent(MainActivity.this, CreditSales.class);
-        intent.putExtra(Constants.TRANSACTIONTYPE, Constants.FINANCEITEM);
+        intent.putExtra(Constants.TRANSACTIONTYPE, Constants.LOAN);
         intent.putExtra(Constants.TRANSACTIONTYPEREVERSE, Constants.LOANPAYMENT);
         intent.putExtra(Constants.ACCOUNTS, Constants.lender);
         intent.putExtra(Constants.TITLE, "Loan Management");

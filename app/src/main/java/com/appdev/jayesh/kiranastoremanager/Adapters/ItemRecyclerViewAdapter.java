@@ -28,7 +28,7 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
             creditSale = view.findViewById(R.id.creditSale);
             cashPurchase = view.findViewById(R.id.cashPurchase);
             creditPurchase = view.findViewById(R.id.creditPurchase);
-            expenses = view.findViewById(R.id.otherPayments);
+            expenses = view.findViewById(R.id.expenses);
             financeItem = view.findViewById(R.id.financeItem);
 
         }
@@ -57,7 +57,7 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
             holder.cashPurchase.setChecked(item.getUsedFor().get(Constants.CASHPURCHASE));
             holder.creditPurchase.setChecked(item.getUsedFor().get(Constants.CREDITPURCHASE));
             holder.expenses.setChecked(item.getUsedFor().get(Constants.EXPENSES));
-            holder.financeItem.setChecked(item.getUsedFor().get(Constants.FINANCEITEM));
+            holder.financeItem.setChecked(item.getUsedFor().get(Constants.LOAN));
         }
     }
 

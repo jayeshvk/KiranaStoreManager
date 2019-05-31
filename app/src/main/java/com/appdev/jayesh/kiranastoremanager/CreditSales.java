@@ -499,11 +499,9 @@ public class CreditSales extends AppCompatActivity {
                             in = 0;
                             out = 0;
                         }
-                        String type = transactionType.contains(Constants.FINANCEITEM) ? Constants.LOAN : transactionType;
-
                         new AlertDialog.Builder(view.getContext())
                                 .setTitle("Summary ")
-                                .setMessage(type + " Rs : " + document.get(transactionType) + "\n" +
+                                .setMessage(transactionType + " Rs : " + document.get(transactionType) + "\n" +
                                         transactionTypeReverse + " Rs : " + document.get(transactionTypeReverse) + "\n" +
                                         "Balance Rs : " + (in + out))
                                 .setNegativeButton(android.R.string.no, null)
