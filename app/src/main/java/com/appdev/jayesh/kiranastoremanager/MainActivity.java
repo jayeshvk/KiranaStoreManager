@@ -185,6 +185,8 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case "Settings":
                 mDrawerLayout.closeDrawer(Gravity.START);
+                startActivity(new Intent(MainActivity.this, Settings.class));
+
                 break;
             case "Item Summary":
                 mDrawerLayout.closeDrawer(Gravity.START);

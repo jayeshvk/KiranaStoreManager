@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.appdev.jayesh.kiranastoremanager">
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -11,6 +12,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
+
+        <activity android:name=".Settings" />
         <activity
             android:name=".SignIn"
             android:screenOrientation="portrait">
@@ -50,14 +53,14 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".SalesOrdersReport"
+            android:label="@string/title_activity_sales_order_report"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_sales_order_report"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ItemSummaryReport"
+            android:label="@string/title_activity_item_summary"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_item_summary"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".DateReport"
             android:label="@string/title_activity_date_report"
@@ -65,9 +68,9 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".SalesSummaryReport"
+            android:label="@string/title_activity_sales_summary"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_sales_summary" />
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

@@ -202,8 +202,8 @@ public class SalesSummaryReport extends AppCompatActivity {
                     d.getLOANPAYMENT() + 0;
             d.setSUM(bal);
 
-            in = in + d.getCASHSALES() + d.getLOAN() + d.getCUSTOMERPAYMENTS();
-            out = out + d.getCASHPURCHASES() + d.getEXPENSES() + d.getVENDORPAYMENTS() + d.getLOANPAYMENT();
+            in = in + d.getCASHSALES() + d.getLOAN() + Math.abs(d.getCUSTOMERPAYMENTS() + d.getCREDITSALES());
+            out = out + d.getCASHPURCHASES() + d.getEXPENSES() + d.getLOANPAYMENT() + Math.abs(d.getCREDITPURCHASES() - +d.getVENDORPAYMENTS());
             balance = balance + bal;
 
             crs = d.getCASHSALES();

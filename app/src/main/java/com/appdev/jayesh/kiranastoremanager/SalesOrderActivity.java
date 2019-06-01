@@ -128,7 +128,7 @@ public class SalesOrderActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         showProgressBar(true);
-        Query query = documentReference.collection(Constants.ITEMS).whereEqualTo("usedFor." + Constants.CREDITSALES, true);
+        Query query = documentReference.collection(Constants.ITEMS).whereEqualTo("usedFor." + Constants.CREDITSALES, true).orderBy("name", Query.Direction.ASCENDING);
         query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
