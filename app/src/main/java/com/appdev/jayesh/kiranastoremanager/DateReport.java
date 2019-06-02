@@ -28,6 +28,7 @@ import android.widget.Toast;
 import com.appdev.jayesh.kiranastoremanager.Adapters.DateReportRecyclerViewAdapter;
 import com.appdev.jayesh.kiranastoremanager.Adapters.RecyclerTouchListener;
 import com.appdev.jayesh.kiranastoremanager.Model.Accounts;
+import com.appdev.jayesh.kiranastoremanager.Model.Items;
 import com.appdev.jayesh.kiranastoremanager.Model.Transaction;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -68,7 +69,7 @@ public class DateReport extends AppCompatActivity {
 
     EditText fromdate, todate;
 
-    Spinner accountSpinner, transactionTypeSpinner;
+    Spinner accountSpinner, transactionTypeSpinner, itemSpinner;
     List<Accounts> accountsList = new ArrayList<>();
     ArrayAdapter<Accounts> accountsAdapter;
     List<String> transactionTypeList = new ArrayList<>();
@@ -81,6 +82,11 @@ public class DateReport extends AppCompatActivity {
     TextView tvbalance;
 
     WriteBatch batch;
+
+    List<Items> itemsList = new ArrayList<>();
+    ArrayAdapter<Items> itemAdapter;
+
+    HashMap<String, String> transactionMapping = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,8 +118,14 @@ public class DateReport extends AppCompatActivity {
         tvout = findViewById(R.id.out);
         tvbalance = findViewById(R.id.balance);
 
+        transactionMapping.put(Constants.CREDITSALES, Constants.CUSTOMERPAYMENTS);
+        transactionMapping.put(Constants.CREDITPURCHASE, Constants.VENDORPAYMENTS);
+        transactionMapping.put(Constants.LOAN, Constants.LOANPAYMENT);
+        transactionMapping.put(Constants.DEPOSIT, Constants.WITHDRAWL);
+
         setDate();
         initiateAccountData();
+        initiateItemData();
         initiateLoadTransactionTypeData();
 
         setRecyclerTouchListner();
@@ -388,11 +400,59 @@ public class DateReport extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 refreshRecyclerView();
                 setAccountTypeLoadAccountData(parent.getItemAtPosition(position).toString());
+                loadItemData();
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
+            }
+        });
+
+    }
+
+    private void initiateItemData() {
+        itemSpinner = findViewById(R.id.itemSpinner);
+        itemAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, itemsList);
+        itemAdapter.setDropDownViewResource(R.layout.spinner_item);
+        itemSpinner.setAdapter(itemAdapter);
+        itemSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                refreshRecyclerView();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+    }
+
+    private void loadItemData() {
+        itemsList.clear();
+        Items tmp = new Items();
+        tmp.setName("ALL");
+        itemsList.add(tmp);
+        Items freeTexItem = new Items();
+        freeTexItem.setName(Constants.FREETEXTITEM);
+        itemsList.add(freeTexItem);
+        showProgressBar(true);
+        Query query = firebaseFirestore.collection(Constants.USERS).document(user.getUid()).collection(Constants.ITEMS).whereEqualTo("usedFor." + transactionTypeSpinner.getSelectedItem().toString(), true);
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
+                    Items item = q.toObject(Items.class);
+                    itemsList.add(item);
+                }
+                showProgressBar(false);
+                itemAdapter.notifyDataSetChanged();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                showProgressBar(false);
             }
         });
 
@@ -470,10 +530,104 @@ public class DateReport extends AppCompatActivity {
     }
 
     public void loadTransaction(View view) {
-        loadTransactions();
+        refreshRecyclerView();
+        final String item = itemSpinner.getSelectedItem().toString();
+        final String tranType = transactionTypeSpinner.getSelectedItem().toString();
+
+        loadTransactions(tranType, item);
     }
 
-    private void loadTransactions() {
+    private void loadTransactions(String tranType, String item) {
+        long fromMilli, toMilli;
+        fromMilli = UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00");
+        toMilli = UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59");
+
+        //handle banking transaction type seperately
+        if (tranType.equals(Constants.BANKING))
+            tranType = Constants.DEPOSIT;
+
+        if (item.equals(Constants.ALL)) {
+            getDataFromFireStoreForAll(fromMilli, toMilli, tranType);
+            if (transactionMapping.get(tranType) != null)
+                getDataFromFireStoreForAll(fromMilli, toMilli, transactionMapping.get(tranType));
+        } else {
+            getDataFromFireStoreForOne(fromMilli, toMilli, tranType);
+            if (transactionMapping.get(tranType) != null)
+                getDataFromFireStoreForOne(fromMilli, toMilli, transactionMapping.get(tranType));
+        }
+    }
+
+    private void getDataFromFireStoreForAll(long fromMilli, long toMilli, String tranType) {
+
+        showProgressBar(true, "Loading transactions for Item");
+        Query query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", fromMilli)
+                .whereLessThanOrEqualTo("timeInMilli", toMilli)
+                .whereEqualTo(Constants.TRANSACTIONTYPE, tranType)
+                .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId())
+                .orderBy("timeInMilli", Query.Direction.ASCENDING);
+
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if (queryDocumentSnapshots != null) {
+                    for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
+                        Transaction transaction = q.toObject(Transaction.class);
+                        System.out.println(transaction.getTimeInMilli());
+                        if (transaction.getAmount() > 0)
+                            in = in + transaction.getAmount();
+                        if (transaction.getAmount() < 0)
+                            out = out + transaction.getAmount();
+                        balance = balance + transaction.getAmount();
+                        transactionList.add(transaction);
+                        System.out.println(transaction.getItemName());
+                    }
+                    recyclerViewAdapter.notifyDataSetChanged();
+                    updateFooter();
+                    showProgressBar(false);
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                System.out.println("Exception :" + e);
+                showProgressBar(false);
+            }
+        });
+    }
+
+    private void getDataFromFireStoreForOne(long fromMilli, long toMilli, String tranType) {
+        Query query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", fromMilli)
+                .whereLessThanOrEqualTo("timeInMilli", toMilli)
+                .whereEqualTo(Constants.TRANSACTIONTYPE, tranType)
+                .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId())
+                .whereEqualTo("itemId", itemsList.get(itemSpinner.getSelectedItemPosition()).getId());
+
+        showProgressBar(true, "Loading transactions for Item");
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if (queryDocumentSnapshots != null) {
+                    for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
+                        Transaction transaction = q.toObject(Transaction.class);
+                        System.out.println(transaction.getTimeInMilli());
+                        if (transaction.getAmount() > 0)
+                            in = in + transaction.getAmount();
+                        if (transaction.getAmount() < 0)
+                            out = out + transaction.getAmount();
+                        balance = balance + transaction.getAmount();
+                        transactionList.add(transaction);
+                        System.out.println(transaction.getItemName());
+                    }
+                    recyclerViewAdapter.notifyDataSetChanged();
+                    updateFooter();
+                    showProgressBar(false);
+                }
+            }
+        });
+        showProgressBar(false);
+    }
+
+    private void loadTransactionsA() {
         refreshRecyclerView();
         String tranType = transactionTypeSpinner.getSelectedItem().toString();
         showProgressBar(true, "Loading Transaction List");
@@ -497,7 +651,6 @@ public class DateReport extends AppCompatActivity {
                         transactionList.add(transaction);
                         System.out.println(transaction.getItemName());
                     }
-                    showProgressBar(false);
                     recyclerViewAdapter.notifyDataSetChanged();
                     updateFooter();
                     showProgressBar(false);

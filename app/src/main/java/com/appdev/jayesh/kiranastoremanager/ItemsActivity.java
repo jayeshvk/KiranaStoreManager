@@ -220,10 +220,10 @@ public class ItemsActivity extends AppCompatActivity {
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
-                            showProgressBar(false);
                             toast("Item " + item.getName() + " updated successfully");
                             itemsList.set(UHelper.parseInt(itemPrice.getTag().toString()), item);
                             resetView();
+                            showProgressBar(false);
 
                         }
                     })
