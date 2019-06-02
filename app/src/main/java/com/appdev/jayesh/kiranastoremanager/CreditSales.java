@@ -309,9 +309,9 @@ public class CreditSales extends AppCompatActivity {
         batch = firebaseFirestore.batch();
         // initiateAccountingEntries();
         String dia = null;
-        if (account.contains(Constants.customer))
+        if (account.equals(Constants.customer))
             dia = "Are you Sure to Receive Customer payments from ";
-        else if (account.contains(Constants.vendor))
+        else if (account.equals(Constants.vendor))
             dia = "Are you Sure to Pay Vendor ";
         else
             dia = "Are you Sure to Pay Lender ";

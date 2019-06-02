@@ -44,7 +44,7 @@ public class Constants {
     public static final String BankBalance = "BankBalance";
     public static final String Seperator = "&";
     public static final String ALL = "ALL";
-
+    public static final String FREETEXTITEM = "Free Text Item";
 
 
 }

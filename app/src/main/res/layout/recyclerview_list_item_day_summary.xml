@@ -213,10 +213,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Credit Purchases" />
+                android:text="Credit Sales" />
 
             <TextView
-                android:id="@+id/creditpurchases"
+                android:id="@+id/creditSales"
                 style="@style/positive"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -235,16 +235,17 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:paddingStart="5dp"
-                android:text="Credit Sales" />
+                android:text="Credit Purchases" />
 
             <TextView
-                android:id="@+id/creditSales"
+                android:id="@+id/creditpurchases"
                 style="@style/negative"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="0"
                 android:textColor="#777777" />
+
         </TableRow>
 
     </TableLayout>

@@ -128,10 +128,10 @@ public class DateReport extends AppCompatActivity {
                 final double oldAmount = transaction.getAmount();
                 int sign;
                 //in case of credit sales, cash puchase, loan payment, vend payment,expenses
-                if (transaction.getTransactionType().contains(Constants.CASHSALES) ||
-                        transaction.getTransactionType().contains(Constants.LOAN) ||
-                        transaction.getTransactionType().contains(Constants.CUSTOMERPAYMENTS) ||
-                        transaction.getTransactionType().contains(Constants.CREDITPURCHASE))
+                if (transaction.getTransactionType().equals(Constants.CASHSALES) ||
+                        transaction.getTransactionType().equals(Constants.LOAN) ||
+                        transaction.getTransactionType().equals(Constants.CUSTOMERPAYMENTS) ||
+                        transaction.getTransactionType().equals(Constants.CREDITPURCHASE))
                     sign = +1;
                 else sign = -1;
 
@@ -139,17 +139,20 @@ public class DateReport extends AppCompatActivity {
                 LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
                 View popupView = inflater.inflate(R.layout.popup_window_transaction_modify, null);
 
+
                 final TextView tvItemName = popupView.findViewById(R.id.itemName);
                 final EditText tvquantity = popupView.findViewById(R.id.quantity);
                 final EditText tvprice = popupView.findViewById(R.id.price);
                 final EditText tvamount = popupView.findViewById(R.id.amount);
                 final EditText tvnote = popupView.findViewById(R.id.note);
                 final EditText uom = popupView.findViewById(R.id.uom);
+                final TextView title = popupView.findViewById(R.id.title);
 
+                title.setText("Modify " + transaction.getTransactionType());
                 tvItemName.setText(transaction.getItemName());
                 tvquantity.setText(transaction.getQuantity() + "");
                 tvprice.setText(transaction.getPrice() + "");
-                tvamount.setText(transaction.getAmount() * sign + "");
+                tvamount.setText(Math.abs(transaction.getAmount()) + "");
                 tvnote.setText(transaction.getNotes());
                 uom.setText(transaction.getUom());
 
@@ -281,19 +284,22 @@ public class DateReport extends AppCompatActivity {
 
     private void updatePosting(Transaction transaction, double oldAmount, int sign) {
 
-        double diff;
+        double diff = 0;
 
 //sign = 0 to handle the deletion of an entry
 
-        //-1 in case of liability and +1 in case of asset
-        if (transaction.getAmount() < 0)
-            diff = -(oldAmount - transaction.getAmount());
-        else if (transaction.getAmount() > 0)
-            diff = transaction.getAmount() - oldAmount;
-        else diff = transaction.getAmount();
+        if (sign == 0) {
+            diff = transaction.getAmount();
+        } else {
+            //-1 in case of liability and +1 in case of asset
+            if (transaction.getAmount() < 0)
+                diff = -(oldAmount - transaction.getAmount());
+            else if (transaction.getAmount() > 0)
+                diff = transaction.getAmount() - oldAmount;
+        }
 
 
-        if (transaction.getTransaction().contains(Constants.BANKING)) {
+        if (transaction.getTransaction().equals(Constants.BANKING)) {
             DocumentReference accountEntryForBanking = documentReference.collection(Constants.POSTINGS).document(Constants.BankBalance);
             Map<String, Object> data = new HashMap<>();
             data.put(Constants.BankBalance, FieldValue.increment(diff));
@@ -309,7 +315,7 @@ public class DateReport extends AppCompatActivity {
 
             batch.set(accountEntry, data, SetOptions.merge());
 
-            if (!(transaction.getTransaction().contains(Constants.CASHSALES) || !transaction.getTransaction().contains(Constants.CASHPURCHASE))) {
+            if (!(transaction.getTransaction().equals(Constants.CASHSALES) || !transaction.getTransaction().equals(Constants.CASHPURCHASE))) {
                 DocumentReference doc = documentReference.collection(Constants.ACCOUNTS).document(transaction.getAccountId());
                 Map<String, Object> docdata = new HashMap<>();
                 docdata.put(transaction.getTransactionType(), FieldValue.increment(diff));
@@ -325,25 +331,23 @@ public class DateReport extends AppCompatActivity {
 
     private void updateFooter() {
 
-        if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.CREDITSALES)) {
+        if (transactionTypeSpinner.getSelectedItem().toString().equals(Constants.CREDITSALES)) {
             tvin.setText("Credit SalesΣ\n" + out);
             tvout.setText("Receipt Σ\n" + in);
-        } else if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.CREDITPURCHASE)) {
+        } else if (transactionTypeSpinner.getSelectedItem().toString().equals(Constants.CREDITPURCHASE)) {
             tvin.setText("Credit PurchaseΣ\n" + in);
             tvout.setText("Payment Σ\n" + out);
-        } else if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.LOAN)) {
+        } else if (transactionTypeSpinner.getSelectedItem().toString().equals(Constants.LOAN)) {
             tvin.setText("Loan Σ\n" + in);
             tvout.setText("Payment Σ\n" + out);
-        } else if (transactionTypeSpinner.getSelectedItem().toString().contains(Constants.BANKING)) {
+        } else if (transactionTypeSpinner.getSelectedItem().toString().equals(Constants.BANKING)) {
             tvin.setText("Deposit Σ\n" + in);
             tvout.setText("Withdrawl Σ\n" + out);
         } else {
             tvin.setText("+\n" + in);
             tvout.setText("-\n" + out);
         }
-
-        tvbalance.setText("Balance Σ\n" + (out + in));
-
+        tvbalance.setText("Balance Σ\n" + String.format("%.2f", (out + in)));
     }
 
     private void initiateAccountData() {

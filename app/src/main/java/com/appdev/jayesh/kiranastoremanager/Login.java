@@ -120,7 +120,7 @@ public class Login extends AppCompatActivity {
         if (TextUtils.isEmpty(email) || TextUtils.isEmpty(pass) || TextUtils.isEmpty(repeatpass)) {
             Toast.makeText(Login.this, "Enter Values", Toast.LENGTH_LONG).show();
 
-        } else if (!pass.contains(repeatpass)) {
+        } else if (!pass.equals(repeatpass)) {
             Toast.makeText(getApplicationContext(), "Repeat Password do not match", Toast.LENGTH_SHORT).show();
         } else {
             progressDialog.setTitle("Signing up user");

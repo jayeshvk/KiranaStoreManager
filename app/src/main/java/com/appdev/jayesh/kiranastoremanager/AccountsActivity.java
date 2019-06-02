@@ -110,7 +110,7 @@ public class AccountsActivity extends AppCompatActivity {
                                     } else {
                                         int p = -1;
                                         for (int i = 0; i < accountsList.size(); i++) {
-                                            if (accountsList.get(i).getId().contains(account.getId()))
+                                            if (accountsList.get(i).getId().equals(account.getId()))
                                                 p = i;
                                         }
                                         accountsList.set(p, account);
@@ -124,7 +124,7 @@ public class AccountsActivity extends AppCompatActivity {
                                     } else {
                                         int p = -1;
                                         for (int i = 0; i < accountsList.size(); i++) {
-                                            if (accountsList.get(i).getId().contains(account.getId()))
+                                            if (accountsList.get(i).getId().equals(account.getId()))
                                                 p = i;
                                         }
                                         accountsList.remove(p);

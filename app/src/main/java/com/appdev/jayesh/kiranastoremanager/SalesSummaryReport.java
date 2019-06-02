@@ -182,7 +182,7 @@ public class SalesSummaryReport extends AppCompatActivity {
         for (DaySummary d : daySummaries) {
             String key = "";
             String date = d.getDate();
-            if (date.contains(Constants.BankBalance))
+            if (date.equals(Constants.BankBalance))
                 continue;
             int pos = summaryTypeSpinner.getSelectedItemPosition();
 

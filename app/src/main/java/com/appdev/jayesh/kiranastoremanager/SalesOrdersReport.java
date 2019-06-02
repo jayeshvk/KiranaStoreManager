@@ -147,15 +147,15 @@ public class SalesOrdersReport extends AppCompatActivity {
                 tvnote.setText(salesOrder.getNotes());
                 tvUom.setText(salesOrder.getUom());
 
-                if (salesOrder.getStatus().contains(open.getText().toString()))
+                if (salesOrder.getStatus().equals(open.getText().toString()))
                     open.setChecked(true);
-                if (salesOrder.getStatus().contains(closed.getText().toString()))
+                if (salesOrder.getStatus().equals(closed.getText().toString()))
                     closed.setChecked(true);
-                if (salesOrder.getStatus().contains(pending.getText().toString()))
+                if (salesOrder.getStatus().equals(pending.getText().toString()))
                     pending.setChecked(true);
-                if (salesOrder.getStatus().contains(delivered.getText().toString()))
+                if (salesOrder.getStatus().equals(delivered.getText().toString()))
                     delivered.setChecked(true);
-                if (salesOrder.getStatus().contains(cancelled.getText().toString()))
+                if (salesOrder.getStatus().equals(cancelled.getText().toString()))
                     cancelled.setChecked(true);
 
 
@@ -313,16 +313,16 @@ public class SalesOrdersReport extends AppCompatActivity {
 
     private void updateFooter() {
 
-        if (statusSpinner.getSelectedItem().toString().contains(Constants.CREDITSALES)) {
+        if (statusSpinner.getSelectedItem().toString().equals(Constants.CREDITSALES)) {
             tvin.setText("Credit SalesΣ\n" + out);
             tvout.setText("Receipt Σ\n" + in);
-        } else if (statusSpinner.getSelectedItem().toString().contains(Constants.CREDITPURCHASE)) {
+        } else if (statusSpinner.getSelectedItem().toString().equals(Constants.CREDITPURCHASE)) {
             tvin.setText("Credit PurchaseΣ\n" + in);
             tvout.setText("Payment Σ\n" + out);
-        } else if (statusSpinner.getSelectedItem().toString().contains(Constants.LOAN)) {
+        } else if (statusSpinner.getSelectedItem().toString().equals(Constants.LOAN)) {
             tvin.setText("Loan Σ\n" + in);
             tvout.setText("Payment Σ\n" + out);
-        } else if (statusSpinner.getSelectedItem().toString().contains(Constants.BANKING)) {
+        } else if (statusSpinner.getSelectedItem().toString().equals(Constants.BANKING)) {
             tvin.setText("Deposit Σ\n" + in);
             tvout.setText("Withdrawl Σ\n" + out);
         } else {
@@ -391,8 +391,8 @@ public class SalesOrdersReport extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 TextView tv = findViewById(R.id.tvDate);
-                if (parent.getItemAtPosition(position).toString().contains(Constants.STATUS_DELIVERED)
-                        || parent.getItemAtPosition(position).toString().contains(Constants.STATUS_CLOSED)) {
+                if (parent.getItemAtPosition(position).toString().equals(Constants.STATUS_DELIVERED)
+                        || parent.getItemAtPosition(position).toString().equals(Constants.STATUS_CLOSED)) {
                     tv.setText("Delivered");
                 } else {
                     tv.setText("Created");
@@ -422,7 +422,7 @@ public class SalesOrdersReport extends AppCompatActivity {
         if (accountsList.size() <= 0 || accountName.length() <= 0)
             return;
 
-        if (accountName.contains(Constants.ALL)) {
+        if (accountName.equals(Constants.ALL)) {
             query = documentReference.collection(Constants.SALESORDERS).whereGreaterThanOrEqualTo("created", UHelper.ddmmyyyyhmsTomili(fromdate.getText().toString() + " 00:00:00"))
                     .whereLessThanOrEqualTo("created", UHelper.ddmmyyyyhmsTomili(todate.getText().toString() + " 23:59:59"))
                     .whereEqualTo("status", status);

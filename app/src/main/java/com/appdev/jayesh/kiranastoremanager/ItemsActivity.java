@@ -134,7 +134,7 @@ public class ItemsActivity extends AppCompatActivity {
                                     } else {
                                         int p = -1;
                                         for (int i = 0; i < itemsList.size(); i++) {
-                                            if (itemsList.get(i).getId().contains(item.getId()))
+                                            if (itemsList.get(i).getId().equals(item.getId()))
                                                 p = i;
                                         }
                                         itemsList.set(p, item);
@@ -148,7 +148,7 @@ public class ItemsActivity extends AppCompatActivity {
                                     } else {
                                         int p = -1;
                                         for (int i = 0; i < itemsList.size(); i++) {
-                                            if (itemsList.get(i).getId().contains(item.getId()))
+                                            if (itemsList.get(i).getId().equals(item.getId()))
                                                 p = i;
                                         }
                                         itemsList.remove(p);
