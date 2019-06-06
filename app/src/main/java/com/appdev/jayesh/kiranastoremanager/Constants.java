@@ -47,4 +47,5 @@ public class Constants {
     public static final String FREETEXTITEM = "Free Text Item";
 
 
+    public static final String OTHERS = "OTHERS" ;
 }

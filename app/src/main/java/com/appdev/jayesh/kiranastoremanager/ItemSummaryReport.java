@@ -214,6 +214,10 @@ public class ItemSummaryReport extends AppCompatActivity {
     }
 
     private void loadAccountData(String account) {
+        Accounts all = new Accounts();
+        all.setName(Constants.ALL);
+
+        accountsList.add(all);
         showProgressBar(true);
         documentReference.collection(Constants.ACCOUNTS).whereEqualTo(account, true).get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -350,6 +354,7 @@ public class ItemSummaryReport extends AppCompatActivity {
         if (tranType.equals(Constants.BANKING))
             tranType = Constants.DEPOSIT;
 
+        //get data for Transaction type anf their rever transactions
         if (item.equals(Constants.ALL)) {
             getDataFromFireStoreForAll(fromMilli, toMilli, tranType);
             if (transactionMapping.get(tranType) != null)
@@ -362,18 +367,21 @@ public class ItemSummaryReport extends AppCompatActivity {
     }
 
     private void getDataFromFireStoreForAll(long fromMilli, long toMilli, String tranType) {
-/*        for (Items i : itemsList) {
-            if (i.getName().equals("ALL"))
-                continue;*/
+        String accountname = accountSpinner.getSelectedItem().toString();
+        Query query = null;
+        if (accountname.equals(Constants.ALL)) {
+            query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", fromMilli)
+                    .whereLessThanOrEqualTo("timeInMilli", toMilli)
+                    .whereEqualTo(Constants.TRANSACTIONTYPE, tranType)
+                    .orderBy("timeInMilli", Query.Direction.ASCENDING);
+        } else {
+            query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", fromMilli)
+                    .whereLessThanOrEqualTo("timeInMilli", toMilli)
+                    .whereEqualTo(Constants.TRANSACTIONTYPE, tranType)
+                    .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId())
+                    .orderBy("timeInMilli", Query.Direction.ASCENDING);
+        }
         showProgressBar(true, "Loading transactions for Item");
-        Query query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", fromMilli)
-                .whereLessThanOrEqualTo("timeInMilli", toMilli)
-                .whereEqualTo(Constants.TRANSACTIONTYPE, tranType)
-                .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId())
-                .orderBy("timeInMilli", Query.Direction.ASCENDING);
-        //.whereEqualTo("itemId", i.getId());
-
-
         query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -397,12 +405,22 @@ public class ItemSummaryReport extends AppCompatActivity {
     }
 
     private void getDataFromFireStoreForOne(long fromMilli, long toMilli, String tranType) {
-        Query query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", fromMilli)
-                .whereLessThanOrEqualTo("timeInMilli", toMilli)
-                .whereEqualTo(Constants.TRANSACTIONTYPE, tranType)
-                .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId())
-                .whereEqualTo("itemId", itemsList.get(itemSpinner.getSelectedItemPosition()).getId());
+        String accountname = accountSpinner.getSelectedItem().toString();
+        Query query = null;
 
+        if (accountname.equals(Constants.ALL)) {
+            query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", fromMilli)
+                    .whereLessThanOrEqualTo("timeInMilli", toMilli)
+                    .whereEqualTo(Constants.TRANSACTIONTYPE, tranType)
+                    .whereEqualTo("itemId", itemsList.get(itemSpinner.getSelectedItemPosition()).getId());
+        } else {
+
+            query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", fromMilli)
+                    .whereLessThanOrEqualTo("timeInMilli", toMilli)
+                    .whereEqualTo(Constants.TRANSACTIONTYPE, tranType)
+                    .whereEqualTo("accountId", accountsList.get(accountSpinner.getSelectedItemPosition()).getId())
+                    .whereEqualTo("itemId", itemsList.get(itemSpinner.getSelectedItemPosition()).getId());
+        }
         showProgressBar(true, "Loading transactions for Item");
         query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
@@ -428,14 +446,19 @@ public class ItemSummaryReport extends AppCompatActivity {
                 itemname = tmp.get(0).getItemName();
             for (Transaction transaction : tmp) {
                 String key = "";
+
                 String date = UHelper.militoddmmyyyy(transaction.getTimeInMilli());
 
                 if (viewType.equals("daily")) {
-                    key = date;
+                    key = date + "_" + transaction.getItemName();
                 } else
-                    key = date.split("-")[1] + "-" + date.split("-")[2];
+                    key = date.split("-")[1] + "-" + date.split("-")[2] + "_" + transaction.getItemName();
 
                 balance = balance + transaction.getAmount();
+                if (transaction.getAmount() < 0)
+                    out = out + transaction.getAmount();
+                if (transaction.getAmount() > 0)
+                    in = in + transaction.getAmount();
 
                 double oldValue, oldQuantity;
                 if (result.get(key) != null) {
@@ -461,13 +484,13 @@ public class ItemSummaryReport extends AppCompatActivity {
                     Map.Entry<String, String> entry : sorted.entrySet()) {
                 Transaction t = new Transaction();
                 if (entry.getKey().length() == 7)
-                    t.setTimeInMilli(UHelper.ddmmyyyyTomili("01-" + entry.getKey()));
+                    t.setTimeInMilli(UHelper.ddmmyyyyTomili("01-" + entry.getKey().substring(0, 7)));
                 else
-                    t.setTimeInMilli(UHelper.ddmmyyyyTomili(entry.getKey()));
+                    t.setTimeInMilli(UHelper.ddmmyyyyTomili(entry.getKey().substring(0, 10)));
 
                 t.setAmount(UHelper.parseDouble(entry.getValue().split(Constants.Seperator)[0]));
                 t.setQuantity(UHelper.parseDouble(entry.getValue().split(Constants.Seperator)[1]));
-                t.setItemName(itemname);
+                t.setItemName(entry.getKey().substring(entry.getKey().indexOf("_") + 1));
                 transactionList.add(t);
             }
             recyclerViewAdapter.notifyDataSetChanged();
@@ -475,7 +498,6 @@ public class ItemSummaryReport extends AppCompatActivity {
         updateFooter();
         load = true;
     }
-
 
     private void showProgressBar(final boolean visibility) {
 
@@ -604,9 +626,9 @@ public class ItemSummaryReport extends AppCompatActivity {
     }
 
     private void updateFooter() {
-        tvin.setText("In Σ\n" + out);
+        tvin.setText("In Σ\n" + in);
         tvout.setText("Out Σ\n" + out);
-        tvbalance.setText("Balance Σ\n" + balance);
+        tvbalance.setText("Balance Σ\n" + (out + in));
 
     }
 

@@ -137,6 +137,7 @@ public class DateReport extends AppCompatActivity {
             public void onClick(View view, final int position) {
                 //on touch of the item, set data on the scree
                 final Transaction transaction = transactionList.get(position);
+                final Transaction oldTransaction = transaction;
                 final double oldAmount = transaction.getAmount();
                 int sign;
                 //in case of credit sales, cash puchase, loan payment, vend payment,expenses
@@ -240,6 +241,10 @@ public class DateReport extends AppCompatActivity {
                         batch.delete(del);
                         updatePosting(transaction, oldAmount, 0);
                         updateFooter();
+
+                        DocumentReference deletedDoc = documentReference.collection(Constants.OTHERS).document("DELETED").collection(UHelper.setPresentDateddMMyyyy()).document();
+                        batch.set(deletedDoc, oldTransaction);
+
                         transactionList.remove(position);
                         popupWindow.dismiss();
                         batchWrite();
@@ -264,6 +269,10 @@ public class DateReport extends AppCompatActivity {
                         updatePosting(transaction, oldAmount, finalSign);
                         transactionList.set(position, transaction);
                         popupWindow.dismiss();
+
+                        DocumentReference updatedDoc = documentReference.collection(Constants.OTHERS).document("EDITED").collection(UHelper.setPresentDateddMMyyyy()).document();
+                        batch.set(updatedDoc, oldTransaction);
+
                         batchWrite();
                     }
                 });
@@ -327,10 +336,13 @@ public class DateReport extends AppCompatActivity {
 
             batch.set(accountEntry, data, SetOptions.merge());
 
-            if (!(transaction.getTransaction().equals(Constants.CASHSALES) || !transaction.getTransaction().equals(Constants.CASHPURCHASE))) {
+            if (!transaction.getTransaction().equals(Constants.CASHSALES) || !transaction.getTransaction().equals(Constants.CASHPURCHASE)) {
                 DocumentReference doc = documentReference.collection(Constants.ACCOUNTS).document(transaction.getAccountId());
                 Map<String, Object> docdata = new HashMap<>();
-                docdata.put(transaction.getTransactionType(), FieldValue.increment(diff));
+                if (sign == 0)
+                    docdata.put(transaction.getTransactionType(), FieldValue.increment(-diff));
+                else
+                    docdata.put(transaction.getTransactionType(), FieldValue.increment(diff));
                 batch.set(doc, docdata, SetOptions.merge());
             }
         }
