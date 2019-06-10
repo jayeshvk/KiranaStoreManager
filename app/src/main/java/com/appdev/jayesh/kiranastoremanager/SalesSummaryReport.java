@@ -113,9 +113,9 @@ public class SalesSummaryReport extends AppCompatActivity {
     }
 
     private void updateFooter() {
-        tvin.setText("Asset Σ\n" + in);
-        tvout.setText("Liability Σ\n" + out);
-        tvbalance.setText("Balance Σ\n" + balance);
+        tvin.setText("Asset Σ\n" + String.format("%.2f", in));
+        tvout.setText("Liability Σ\n" + String.format("%.2f", out));
+        tvbalance.setText("Balance Σ\n" + String.format("%.2f", balance));
 
     }
 

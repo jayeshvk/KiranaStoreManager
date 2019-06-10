@@ -2,6 +2,7 @@ package com.appdev.jayesh.kiranastoremanager;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -15,9 +16,12 @@ import com.firebase.ui.auth.IdpResponse;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SignIn extends AppCompatActivity {
 
@@ -64,6 +68,7 @@ public class SignIn extends AppCompatActivity {
                 AuthUI.getInstance()
                         .createSignInIntentBuilder()
                         .setAvailableProviders(providers)
+                        .setLogo(R.mipmap.ksm)
                         .build(),
                 RC_SIGN_IN);
     }
@@ -79,7 +84,7 @@ public class SignIn extends AppCompatActivity {
                     // Successfully signed in
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                     // Add a new document with a generated ID
-                    FirebaseFirestore.getInstance().collection("users").document(user.getUid()).set(user);
+                    FirebaseFirestore.getInstance().collection("users").document(user.getUid()).set(user.getEmail());
                     updateUI(user);
                     // ...
                 } else {
@@ -91,6 +96,15 @@ public class SignIn extends AppCompatActivity {
 
     private void updateUI(FirebaseUser currentUser) {
         if (currentUser != null) {
+            String reqString = Build.MANUFACTURER
+                    + " " + Build.MODEL + " " + Build.VERSION.RELEASE
+                    + " " + Build.VERSION_CODES.class.getFields()[android.os.Build.VERSION.SDK_INT].getName();
+            Map<String, Object> data = new HashMap<>();
+            data.put("login", UHelper.setPresentDateyyyyMMddhhmm());
+
+            FirebaseFirestore.getInstance().collection("users").document(currentUser.getUid()).
+                    collection("Access").document(reqString).set(data, SetOptions.merge());
+
             Intent intent = new Intent(SignIn.this, MainActivity.class);
             startActivity(intent);
         }

@@ -354,15 +354,26 @@ public class ItemSummaryReport extends AppCompatActivity {
         if (tranType.equals(Constants.BANKING))
             tranType = Constants.DEPOSIT;
 
-        //get data for Transaction type anf their rever transactions
-        if (item.equals(Constants.ALL)) {
-            getDataFromFireStoreForAll(fromMilli, toMilli, tranType);
-            if (transactionMapping.get(tranType) != null)
-                getDataFromFireStoreForAll(fromMilli, toMilli, transactionMapping.get(tranType));
+        if (accountSpinner.getSelectedItem().toString().equals(Constants.ALL)) {
+//get data for Transaction type anf their reverse transactions
+            if (item.equals(Constants.ALL)) {
+                getDataFromFireStoreForAll(fromMilli, toMilli, tranType);
+
+            } else {
+                getDataFromFireStoreForOne(fromMilli, toMilli, tranType);
+            }
+
         } else {
-            getDataFromFireStoreForOne(fromMilli, toMilli, tranType);
-            if (transactionMapping.get(tranType) != null)
-                getDataFromFireStoreForOne(fromMilli, toMilli, transactionMapping.get(tranType));
+            //get data for Transaction type anf their reverse transactions
+            if (item.equals(Constants.ALL)) {
+                getDataFromFireStoreForAll(fromMilli, toMilli, tranType);
+                if (transactionMapping.get(tranType) != null)
+                    getDataFromFireStoreForAll(fromMilli, toMilli, transactionMapping.get(tranType));
+            } else {
+                getDataFromFireStoreForOne(fromMilli, toMilli, tranType);
+                if (transactionMapping.get(tranType) != null)
+                    getDataFromFireStoreForOne(fromMilli, toMilli, transactionMapping.get(tranType));
+            }
         }
     }
 
@@ -372,7 +383,7 @@ public class ItemSummaryReport extends AppCompatActivity {
         if (accountname.equals(Constants.ALL)) {
             query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", fromMilli)
                     .whereLessThanOrEqualTo("timeInMilli", toMilli)
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, tranType)
+                    .whereEqualTo(Constants.TRANSACTION, tranType)
                     .orderBy("timeInMilli", Query.Direction.ASCENDING);
         } else {
             query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", fromMilli)
@@ -411,7 +422,7 @@ public class ItemSummaryReport extends AppCompatActivity {
         if (accountname.equals(Constants.ALL)) {
             query = documentReference.collection(Constants.TRANSACTIONS).whereGreaterThanOrEqualTo("timeInMilli", fromMilli)
                     .whereLessThanOrEqualTo("timeInMilli", toMilli)
-                    .whereEqualTo(Constants.TRANSACTIONTYPE, tranType)
+                    .whereEqualTo(Constants.TRANSACTION, tranType)
                     .whereEqualTo("itemId", itemsList.get(itemSpinner.getSelectedItemPosition()).getId());
         } else {
 
@@ -440,19 +451,28 @@ public class ItemSummaryReport extends AppCompatActivity {
         String itemname = "";
         if (tmp.size() > 0) {
             Map<String, String> result = new HashMap<>();
-            if (itemSpinner.getSelectedItem().toString().equals(Constants.FREETEXTITEM))
-                itemname = Constants.FREETEXTITEM;
-            else
-                itemname = tmp.get(0).getItemName();
+
+
             for (Transaction transaction : tmp) {
+
+                if (itemSpinner.getSelectedItem().toString().equals(Constants.FREETEXTITEM))
+                    itemname = Constants.FREETEXTITEM;
+                else if (transaction.getItemId() == null)
+                    itemname = Constants.FREETEXTITEM;
+                else itemname = transaction.getItemName();
+
                 String key = "";
 
                 String date = UHelper.militoddmmyyyy(transaction.getTimeInMilli());
 
+                if (accountSpinner.getSelectedItem().toString().equals(Constants.ALL))
+                    itemname = transaction.getAccountName();
+
+
                 if (viewType.equals("daily")) {
-                    key = date + "_" + transaction.getItemName();
+                    key = date + "_" + itemname;
                 } else
-                    key = date.split("-")[1] + "-" + date.split("-")[2] + "_" + transaction.getItemName();
+                    key = date.split("-")[1] + "-" + date.split("-")[2] + "_" + itemname;
 
                 balance = balance + transaction.getAmount();
                 if (transaction.getAmount() < 0)
@@ -483,7 +503,10 @@ public class ItemSummaryReport extends AppCompatActivity {
             for (
                     Map.Entry<String, String> entry : sorted.entrySet()) {
                 Transaction t = new Transaction();
-                if (entry.getKey().length() == 7)
+                String date = entry.getKey().split("_")[0];
+                String name = entry.getKey().split("_")[1];
+                System.out.println("*** " + name);
+                if (date.length() == 7)
                     t.setTimeInMilli(UHelper.ddmmyyyyTomili("01-" + entry.getKey().substring(0, 7)));
                 else
                     t.setTimeInMilli(UHelper.ddmmyyyyTomili(entry.getKey().substring(0, 10)));

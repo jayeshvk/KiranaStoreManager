@@ -237,13 +237,14 @@ public class DateReport extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         batch = firebaseFirestore.batch();
+
+                        DocumentReference deletedDoc = documentReference.collection(Constants.OTHERS).document("DELETED").collection(UHelper.setPresentDateddMMyyyy()).document();
+                        batch.set(deletedDoc, transactionList.get(position));
+
                         DocumentReference del = documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId());
                         batch.delete(del);
                         updatePosting(transaction, oldAmount, 0);
                         updateFooter();
-
-                        DocumentReference deletedDoc = documentReference.collection(Constants.OTHERS).document("DELETED").collection(UHelper.setPresentDateddMMyyyy()).document();
-                        batch.set(deletedDoc, oldTransaction);
 
                         transactionList.remove(position);
                         popupWindow.dismiss();
@@ -258,6 +259,11 @@ public class DateReport extends AppCompatActivity {
                         if (UHelper.parseDouble(tvamount.getText().toString()) < 0)
                             return;
                         batch = firebaseFirestore.batch();
+
+                        //store the modified entries
+                        DocumentReference updatedDoc = documentReference.collection(Constants.OTHERS).document("EDITED").collection(UHelper.setPresentDateddMMyyyy()).document();
+                        batch.set(updatedDoc, transactionList.get(position));
+
                         transaction.setQuantity(UHelper.parseDouble(tvquantity.getText().toString()));
                         transaction.setPrice(UHelper.parseDouble(tvprice.getText().toString()));
                         transaction.setAmount(UHelper.parseDouble(tvamount.getText().toString()) * finalSign);
@@ -266,12 +272,11 @@ public class DateReport extends AppCompatActivity {
 
                         DocumentReference updateDocument = documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId());
                         batch.set(updateDocument, transaction, SetOptions.merge());
+
                         updatePosting(transaction, oldAmount, finalSign);
                         transactionList.set(position, transaction);
                         popupWindow.dismiss();
 
-                        DocumentReference updatedDoc = documentReference.collection(Constants.OTHERS).document("EDITED").collection(UHelper.setPresentDateddMMyyyy()).document();
-                        batch.set(updatedDoc, oldTransaction);
 
                         batchWrite();
                     }
@@ -321,29 +326,31 @@ public class DateReport extends AppCompatActivity {
 
 
         if (transaction.getTransaction().equals(Constants.BANKING)) {
+            //For updating Banking entries only
             DocumentReference accountEntryForBanking = documentReference.collection(Constants.POSTINGS).document(Constants.BankBalance);
             Map<String, Object> data = new HashMap<>();
             data.put(Constants.BankBalance, FieldValue.increment(diff));
             batch.set(accountEntryForBanking, data, SetOptions.merge());
 
         } else {
-            DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(UHelper.militoddmmyyyy(transaction.getTimeInMilli()));
+            //update for transactions stored at date level
+            DocumentReference dateEntryUpdate = documentReference.collection(Constants.POSTINGS).document(UHelper.militoddmmyyyy(transaction.getTimeInMilli()));
             Map<String, Object> data = new HashMap<>();
             if (sign == 0)
                 data.put(transaction.getTransactionType(), FieldValue.increment(-diff));
             else
                 data.put(transaction.getTransactionType(), FieldValue.increment(diff));
+            batch.set(dateEntryUpdate, data, SetOptions.merge());
 
-            batch.set(accountEntry, data, SetOptions.merge());
-
+            //update for transaction data stored at account level
             if (!transaction.getTransaction().equals(Constants.CASHSALES) || !transaction.getTransaction().equals(Constants.CASHPURCHASE)) {
-                DocumentReference doc = documentReference.collection(Constants.ACCOUNTS).document(transaction.getAccountId());
+                DocumentReference accountEntryUpdate = documentReference.collection(Constants.ACCOUNTS).document(transaction.getAccountId());
                 Map<String, Object> docdata = new HashMap<>();
                 if (sign == 0)
                     docdata.put(transaction.getTransactionType(), FieldValue.increment(-diff));
                 else
                     docdata.put(transaction.getTransactionType(), FieldValue.increment(diff));
-                batch.set(doc, docdata, SetOptions.merge());
+                batch.set(accountEntryUpdate, docdata, SetOptions.merge());
             }
         }
         if (oldAmount > 0)

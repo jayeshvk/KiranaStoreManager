@@ -2,6 +2,7 @@ package com.appdev.jayesh.kiranastoremanager;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -22,11 +23,14 @@ import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -206,14 +210,23 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case "Logout":
                 progressDialog.show();
+                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                String reqString = Build.MANUFACTURER
+                        + " " + Build.MODEL + " " + Build.VERSION.RELEASE
+                        + " " + Build.VERSION_CODES.class.getFields()[android.os.Build.VERSION.SDK_INT].getName();
+                Map<String, Object> data = new HashMap<>();
+                data.put("logOut ", UHelper.setPresentDateyyyyMMddhhmm());
+
+                FirebaseFirestore.getInstance().collection("users").document(currentUser.getUid()).
+                        collection("Access").document(reqString).set(data, SetOptions.merge());
                 AuthUI.getInstance()
                         .signOut(this)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             public void onComplete(@NonNull Task<Void> task) {
                                 progressDialog.cancel();
-                                if (task.isSuccessful())
+                                if (task.isSuccessful()) {
                                     startActivity(new Intent(MainActivity.this, SignIn.class));
-                                else toast("Sign out failed, please try again");
+                                } else toast("Sign out failed, please try again");
                             }
                         });
                 break;
