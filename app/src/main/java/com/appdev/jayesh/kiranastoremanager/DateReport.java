@@ -244,6 +244,9 @@ public class DateReport extends AppCompatActivity {
                         DocumentReference del = documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId());
                         batch.delete(del);
                         updatePosting(transaction, oldAmount, 0);
+                        if (oldAmount < 0)
+                            out = out - oldAmount;
+                        else in = in - oldAmount;
                         updateFooter();
 
                         transactionList.remove(position);

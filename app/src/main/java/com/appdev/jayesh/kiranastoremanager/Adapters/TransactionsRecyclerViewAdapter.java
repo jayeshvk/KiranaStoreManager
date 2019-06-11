@@ -11,6 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,12 +20,16 @@ import com.appdev.jayesh.kiranastoremanager.Model.Transaction;
 import com.appdev.jayesh.kiranastoremanager.R;
 import com.appdev.jayesh.kiranastoremanager.UHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<TransactionsRecyclerViewAdapter.MyViewHolder> {
+public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<TransactionsRecyclerViewAdapter.MyViewHolder> implements Filterable {
 
     public List<Transaction> transactionList;
+    public List<Transaction> transactionListFull;
+    private List<Transaction> transactionListFiltered;
     public double total;
+
 
     class MyViewHolder extends RecyclerView.ViewHolder {
         TextView itemName;
@@ -138,7 +144,6 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
 
                 @Override
                 public void afterTextChanged(Editable s) {
-                    System.out.println(" after text changed " + uom.getText().toString());
                 }
             });
 
@@ -148,6 +153,8 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
 
     public TransactionsRecyclerViewAdapter(List<Transaction> transactionList) {
         this.transactionList = transactionList;
+        this.transactionListFull = transactionList;
+        this.transactionListFiltered = transactionList;
     }
 
     @NonNull
@@ -176,4 +183,39 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
     public int getItemCount() {
         return transactionList.size();
     }
+
+    @Override
+    public Filter getFilter() {
+        return searchFilter;
+    }
+
+    private Filter searchFilter = new Filter() {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            List<Transaction> filteredList = new ArrayList<>();
+
+            if (constraint == null || constraint.length() == 0) {
+                filteredList.addAll(transactionListFull);
+            } else {
+                String filterPattern = constraint.toString().toLowerCase().trim();
+                for (Transaction item : transactionListFull) {
+                    if (item.getItemName().toLowerCase().contains(filterPattern)) {
+                        filteredList.add(item);
+                    }
+                }
+            }
+
+            FilterResults results = new FilterResults();
+            results.values = filteredList;
+
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            transactionList = (ArrayList<Transaction>) results.values;
+            notifyDataSetChanged();
+        }
+    };
+
 }
