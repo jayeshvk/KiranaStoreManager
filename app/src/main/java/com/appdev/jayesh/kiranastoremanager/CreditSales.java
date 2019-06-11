@@ -406,12 +406,15 @@ public class CreditSales extends AppCompatActivity {
                 else
                     data.put(transactionType, FieldValue.increment(t.getAmount()));
                 data.put("timeInMilli", UHelper.ddmmyyyyhmsTomili(datetime));
-                DocumentReference doc = documentReference.collection(Constants.ACCOUNTS).document(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
-                DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
 
                 batch.set(newDocument, t);
-                batch.set(accountEntry, data, SetOptions.merge());
-                batch.set(doc, data, SetOptions.merge());
+
+                DocumentReference updateAccounts = documentReference.collection(Constants.ACCOUNTS).document(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
+                batch.set(updateAccounts, data, SetOptions.merge());
+
+                DocumentReference updateDaySummary = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
+                batch.set(updateDaySummary, data, SetOptions.merge());
+
             }
         }
     }

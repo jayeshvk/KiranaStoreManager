@@ -346,7 +346,9 @@ public class DateReport extends AppCompatActivity {
             batch.set(dateEntryUpdate, data, SetOptions.merge());
 
             //update for transaction data stored at account level
-            if (!transaction.getTransaction().equals(Constants.CASHSALES) || !transaction.getTransaction().equals(Constants.CASHPURCHASE)) {
+            if (!(transaction.getTransaction().equals(Constants.CASHSALES)
+                    || transaction.getTransaction().equals(Constants.CASHPURCHASE)
+                    || transaction.getTransaction().equals(Constants.EXPENSES))) {
                 DocumentReference accountEntryUpdate = documentReference.collection(Constants.ACCOUNTS).document(transaction.getAccountId());
                 Map<String, Object> docdata = new HashMap<>();
                 if (sign == 0)
