@@ -94,7 +94,7 @@
             android:layout_weight="0.45"
             android:text="Transaction"
             android:textColor="@color/Black"
-            android:textSize="18sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <Spinner
@@ -124,7 +124,7 @@
             android:layout_weight="0.45"
             android:text="Account"
             android:textColor="@color/Black"
-            android:textSize="18sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <Spinner
@@ -153,7 +153,7 @@
             android:layout_weight="0.45"
             android:text="Item Name"
             android:textColor="@color/Black"
-            android:textSize="18sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <Spinner

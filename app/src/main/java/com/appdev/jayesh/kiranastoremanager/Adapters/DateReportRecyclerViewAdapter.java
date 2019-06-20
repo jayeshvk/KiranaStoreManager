@@ -48,7 +48,8 @@ public class DateReportRecyclerViewAdapter extends RecyclerView.Adapter<DateRepo
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         Transaction transaction = transactionList.get(position);
-        holder.date.setText(UHelper.militoddmmyyyy(transaction.getTimeInMilli()));
+        String date = UHelper.militoddmmyyyyhhmma(transaction.getTimeInMilli());
+        holder.date.setText(date.split(" ")[0] + "\n" + date.split(" ")[1] + date.split(" ")[2]);
         holder.itemName.setText(transaction.getItemName());
         holder.quantity.setText(transaction.getQuantity() + "");
         holder.price.setText(transaction.getPrice() + "");

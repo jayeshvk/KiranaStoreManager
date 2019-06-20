@@ -35,8 +35,7 @@
         style="@style/DateReportItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="0.75"
-        android:hint="Unit" />
+        android:layout_weight="0.75" />
 
     <TextView
         android:id="@+id/price"

@@ -1,6 +1,7 @@
 package com.appdev.jayesh.kiranastoremanager;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -107,14 +109,14 @@ public class MainActivity extends AppCompatActivity {
         // Adding data header
         listDataHeader.add(account);
 
-        ExpandedMenuModel items = new ExpandedMenuModel("Items", R.drawable.ic_account_circle, false);
+        ExpandedMenuModel items = new ExpandedMenuModel("Items", R.drawable.ic_format_list_bulleted_black_24dp, false);
         listDataHeader.add(items);
 
-        ExpandedMenuModel settings = new ExpandedMenuModel("Settings", R.drawable.ic_account_circle, false);
+        ExpandedMenuModel settings = new ExpandedMenuModel("Settings", R.drawable.ic_settings_applications_black_24dp, false);
         listDataHeader.add(settings);
 
 
-        ExpandedMenuModel report = new ExpandedMenuModel("Report", R.drawable.ic_account_circle, true);
+        ExpandedMenuModel report = new ExpandedMenuModel("Report", R.drawable.ic_timeline_black_24dp, true);
         listDataHeader.add(report);
         List<String> reportItems = new ArrayList<>();
         reportItems.add("Sales Orders");
@@ -123,9 +125,11 @@ public class MainActivity extends AppCompatActivity {
         reportItems.add("Sales Summary");
         listDataChild.put(report, reportItems);
 
-        ExpandedMenuModel logout = new ExpandedMenuModel("Logout", R.drawable.ic_account_circle, false);
+        ExpandedMenuModel logout = new ExpandedMenuModel("Logout", R.drawable.ic_exit_to_app_black_24dp, false);
         listDataHeader.add(logout);
 
+        ExpandedMenuModel about = new ExpandedMenuModel("About", R.drawable.ic_account_circle, false);
+        listDataHeader.add(about);
     }
 
     private void populateExpandableList() {
@@ -205,7 +209,11 @@ public class MainActivity extends AppCompatActivity {
             case "Sales Summary":
                 mDrawerLayout.closeDrawer(Gravity.START);
                 startActivity(new Intent(MainActivity.this, SalesSummaryReport.class));
-
+            case "About":
+                mDrawerLayout.closeDrawer(Gravity.START);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage("Please Contact jayeshvk@gmail.com before using the app and if you want any info on the app or need additional functionality to suit your requirement");
+                builder.create().show();
 
                 break;
             case "Logout":

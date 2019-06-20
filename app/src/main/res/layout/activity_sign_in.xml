@@ -33,7 +33,7 @@
         android:padding="10dp"
         android:text="KIRANA STORE MANAGER"
         android:textColor="@color/colorPrimary"
-        android:textSize="40sp"
+        android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -49,5 +49,6 @@
         app:layout_constraintHorizontal_bias="0.493"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2"
-        app:srcCompat="@mipmap/ksm" />
+        app:srcCompat="@mipmap/ksm"
+        android:onClick="authenticate"/>
 </android.support.constraint.ConstraintLayout>

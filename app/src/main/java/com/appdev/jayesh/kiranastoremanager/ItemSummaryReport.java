@@ -21,7 +21,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.appdev.jayesh.kiranastoremanager.Adapters.DateReportRecyclerViewAdapter;
+import com.appdev.jayesh.kiranastoremanager.Adapters.ItemSummaryRecyclerViewAdapter;
 import com.appdev.jayesh.kiranastoremanager.Model.Accounts;
 import com.appdev.jayesh.kiranastoremanager.Model.Items;
 import com.appdev.jayesh.kiranastoremanager.Model.Transaction;
@@ -55,7 +55,7 @@ public class ItemSummaryReport extends AppCompatActivity {
     List<Transaction> transactionList = new ArrayList<>();
 
     private ProgressDialog pDialog;
-    DateReportRecyclerViewAdapter recyclerViewAdapter;
+    ItemSummaryRecyclerViewAdapter recyclerViewAdapter;
 
     RecyclerView recyclerView;
 
@@ -100,7 +100,7 @@ public class ItemSummaryReport extends AppCompatActivity {
         pDialog.setCancelable(false);
         pDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 
-        recyclerViewAdapter = new DateReportRecyclerViewAdapter(transactionList);
+        recyclerViewAdapter = new ItemSummaryRecyclerViewAdapter(transactionList);
 
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
