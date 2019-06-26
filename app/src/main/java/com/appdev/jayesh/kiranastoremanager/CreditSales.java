@@ -27,6 +27,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.appdev.jayesh.kiranastoremanager.Adapters.TransactionsRecyclerViewAdapter;
@@ -93,6 +94,8 @@ public class CreditSales extends AppCompatActivity {
 
     int sign;
 
+    TextView tvSummary;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,12 +130,13 @@ public class CreditSales extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         dt = findViewById(R.id.date);
-
+        tvSummary = findViewById(R.id.tvSummary);
 
         setDate();
         loadAccountData();
         loadItemData();
         setListeners();
+
     }
 
     private void setDate() {
@@ -183,14 +187,15 @@ public class CreditSales extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot q : task.getResult()) {
                                 Accounts accounts = q.toObject(Accounts.class);
-                                System.out.println("***" + accounts.getName());
                                 accountsList.add(accounts);
-                                updateSpinnerList();
                             }
+                            accountsArrayAdapter.notifyDataSetChanged();
+
                         } else {
                             toast("Error getting documents: " + task.getException());
                         }
                         showProgressBar(false);
+                        updateSummary();
                     }
                 });
 
@@ -460,15 +465,6 @@ public class CreditSales extends AppCompatActivity {
         });
     }
 
-    private void updateSpinnerList() {
-
-        runOnUiThread(new Runnable() {
-            public void run() {
-                accountsArrayAdapter.notifyDataSetChanged();
-            }
-        });
-    }
-
     private void showProgressBar(final boolean visibility, final String message) {
 
         runOnUiThread(new Runnable() {
@@ -490,7 +486,6 @@ public class CreditSales extends AppCompatActivity {
     public void summary(final View view) {
         if (accountSpinner.getSelectedItem() == null)
             return;
-        ;
         DocumentReference docRef = documentReference.collection(Constants.ACCOUNTS).document(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
         final HashMap<String, Object>[] x = new HashMap[]{new HashMap<>()};
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -525,6 +520,53 @@ public class CreditSales extends AppCompatActivity {
         });
     }
 
+    private void updateSummary() {
+        if (accountSpinner.getSelectedItem() == null)
+            return;
+        DocumentReference docRef = documentReference.collection(Constants.ACCOUNTS).document(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
+        final HashMap<String, Object>[] x = new HashMap[]{new HashMap<>()};
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        double in, out;
+                        try {
+                            in = Math.abs(document.get(transactionType, Double.class));
+                        } catch (NullPointerException e) {
+                            in = 0;
+                        }
+                        try {
+                            out = Math.abs(document.get(transactionTypeReverse, Double.class));
+
+                        } catch (NullPointerException e) {
+                            out = 0;
+                        }
+                        if (transactionType.equals(Constants.CREDITSALES)) {
+                            if (out > in)
+                                tvSummary.setText("Advance " + Math.abs(out - in));
+                            else tvSummary.setText("Due " + Math.abs(in - out));
+
+                        } else if (transactionType.equals(Constants.CREDITPURCHASE)) {
+                            if (out > in)
+                                tvSummary.setText("Advance " + Math.abs(out - in));
+                            else tvSummary.setText("Due " + Math.abs(in - out));
+                        } else {
+                            if (in > out)
+                                tvSummary.setText("Due " + Math.abs(in - out));
+                            else tvSummary.setText("Advance " + Math.abs(out - in));
+                        }
+                    } else {
+                        Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
+    }
+
     public void batchWrite() {
         if (!isAccountAvailable())
             return;
@@ -541,6 +583,7 @@ public class CreditSales extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
                 resetFreeTextView();
                 setDate();
+                updateSummary();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -563,6 +606,7 @@ public class CreditSales extends AppCompatActivity {
     public boolean isFreeItemAvailable() {
         return UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0;
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();

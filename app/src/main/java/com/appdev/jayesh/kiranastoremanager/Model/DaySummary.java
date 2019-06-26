@@ -10,6 +10,13 @@ public class DaySummary {
     private double CREDITPURCHASES;
     private double CUSTOMERPAYMENTS;
     private double VENDORPAYMENTS;
+    private Timestamp timestamp;
+    private long timeInMilli;
+    private double SUM;
+    private double EXPENSES;
+    private double LOAN;
+    private double LOANPAYMENT;
+    private String date;
 
     public Timestamp getTimestamp() {
         return timestamp;
@@ -19,7 +26,6 @@ public class DaySummary {
         this.timestamp = timestamp;
     }
 
-    private Timestamp timestamp;
 
     public long getTimeInMilli() {
         return timeInMilli;
@@ -29,7 +35,6 @@ public class DaySummary {
         this.timeInMilli = timeInMilli;
     }
 
-    private long timeInMilli;
 
     public double getSUM() {
         return SUM;
@@ -39,7 +44,6 @@ public class DaySummary {
         this.SUM = SUM;
     }
 
-    private double SUM;
 
     public double getCASHSALES() {
         return CASHSALES;
@@ -124,9 +128,5 @@ public class DaySummary {
     public DaySummary() {
     }
 
-    private double EXPENSES;
-    private double LOAN;
-    private double LOANPAYMENT;
-    private String date;
 
 }

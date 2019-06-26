@@ -135,7 +135,7 @@ public class DateReport extends AppCompatActivity {
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
             public void onClick(View view, final int position) {
-                //on touch of the item, set data on the scree
+                //on touch of the item, set data on the screen
                 final Transaction transaction = transactionList.get(position);
                 final Transaction oldTransaction = transaction;
                 final double oldAmount = transaction.getAmount();
@@ -368,22 +368,36 @@ public class DateReport extends AppCompatActivity {
     private void updateFooter() {
 
         if (transactionTypeSpinner.getSelectedItem().toString().equals(Constants.CREDITSALES)) {
-            tvin.setText("Credit SalesΣ\n" + out);
-            tvout.setText("Receipt Σ\n" + in);
+            tvin.setText("Credit Σ\n" + out);
+            tvout.setText("Payment Σ\n" + in);
+            if (out > in)
+                tvbalance.setText("Due Σ\n" + String.format("%.2f", (out + in)));
+            else
+                tvbalance.setText("Advance Σ\n" + String.format("%.2f", (out + in)));
         } else if (transactionTypeSpinner.getSelectedItem().toString().equals(Constants.CREDITPURCHASE)) {
-            tvin.setText("Credit PurchaseΣ\n" + in);
+            tvin.setText("Credit Σ\n" + in);
             tvout.setText("Payment Σ\n" + out);
+            if (out < in)
+                tvbalance.setText("Due Σ\n" + String.format("%.2f", (out + in)));
+            else
+                tvbalance.setText("Advance Σ\n" + String.format("%.2f", (out + in)));
         } else if (transactionTypeSpinner.getSelectedItem().toString().equals(Constants.LOAN)) {
             tvin.setText("Loan Σ\n" + in);
             tvout.setText("Payment Σ\n" + out);
+            if (in > out)
+                tvbalance.setText("Due Σ\n" + String.format("%.2f", (out + in)));
+            else
+                tvbalance.setText("Advance Σ\n" + String.format("%.2f", (out + in)));
         } else if (transactionTypeSpinner.getSelectedItem().toString().equals(Constants.BANKING)) {
             tvin.setText("Deposit Σ\n" + in);
             tvout.setText("Withdrawl Σ\n" + out);
+            tvbalance.setText("Balance Σ\n" + String.format("%.2f", (out + in)));
         } else {
             tvin.setText("+\n" + in);
             tvout.setText("-\n" + out);
+            tvbalance.setText("Balance Σ\n" + String.format("%.2f", (out + in)));
+
         }
-        tvbalance.setText("Balance Σ\n" + String.format("%.2f", (out + in)));
     }
 
     private void initiateAccountData() {

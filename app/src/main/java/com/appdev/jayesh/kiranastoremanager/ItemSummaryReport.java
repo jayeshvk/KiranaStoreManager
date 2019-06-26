@@ -85,6 +85,8 @@ public class ItemSummaryReport extends AppCompatActivity {
     Boolean load = true;
     HashMap<String, String> transactionMapping = new HashMap<>();
 
+    TextView tvItem;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -125,6 +127,7 @@ public class ItemSummaryReport extends AppCompatActivity {
         transactionMapping.put(Constants.LOAN, Constants.LOANPAYMENT);
         transactionMapping.put(Constants.DEPOSIT, Constants.WITHDRAWL);
 
+        tvItem = findViewById(R.id.tvItem);
 
     }
 
@@ -328,7 +331,10 @@ public class ItemSummaryReport extends AppCompatActivity {
         tmp.clear();
         final String item = itemSpinner.getSelectedItem().toString();
         final String tranType = transactionTypeSpinner.getSelectedItem().toString();
-
+        if (accountSpinner.getSelectedItem().toString().equals(Constants.ALL))
+            tvItem.setText("Name");
+        else
+            tvItem.setText("Item");
         loadTransactions(tranType, item);
     }
 

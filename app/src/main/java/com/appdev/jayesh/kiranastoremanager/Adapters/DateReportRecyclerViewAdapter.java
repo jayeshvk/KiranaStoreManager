@@ -1,5 +1,6 @@
 package com.appdev.jayesh.kiranastoremanager.Adapters;
 
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -56,6 +57,13 @@ public class DateReportRecyclerViewAdapter extends RecyclerView.Adapter<DateRepo
         holder.amount.setText(transaction.getAmount() + "");
         String uom = transaction.getUom() != null ? transaction.getUom() : "*";
         holder.uom.setText(uom);
+
+        if (transaction.getNotes() != null) {
+            if (transaction.getNotes().trim().length() > 0)
+                holder.itemName.setTextColor(Color.BLUE);
+            else
+                holder.itemName.setTextColor(Color.BLACK);
+        }
     }
 
 

@@ -55,6 +55,7 @@
     <style name="DateReportItem">
         <item name="android:textSize">12sp</item>
         <item name="android:gravity">right</item>
+        <item name="android:textColor">@color/Black</item>
     </style>
 
     <style name="DateReportItemHeading">

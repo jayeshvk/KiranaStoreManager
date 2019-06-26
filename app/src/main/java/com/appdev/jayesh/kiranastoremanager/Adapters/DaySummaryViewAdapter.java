@@ -51,7 +51,7 @@ public class DaySummaryViewAdapter extends RecyclerView.Adapter<DaySummaryViewAd
     public void onBindViewHolder(MyViewHolder holder, int position) {
         DaySummary daySummary = daySummaries.get(position);
         holder.date.setText(daySummary.getDate());
-        holder.total.setText(daySummary.getSUM() + "");
+        holder.total.setText(String.format("%.2f", daySummary.getSUM()));
         holder.cashSales.setText(daySummary.getCASHSALES() + "");
         holder.loan.setText(daySummary.getLOAN() + "");
         holder.customerpayments.setText(daySummary.getCUSTOMERPAYMENTS() + "");
