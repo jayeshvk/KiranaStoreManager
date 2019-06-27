@@ -12,8 +12,10 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.appdev.jayesh.kiranastoremanager.Adapters.ItemRecyclerViewAdapter;
@@ -53,8 +55,13 @@ public class ItemsActivity extends AppCompatActivity {
     FirebaseAuth mAuth;
     FirebaseUser user;
     List<Items> itemsList = new ArrayList<>();
+    List<Items> itemsSpinnerList = new ArrayList<>();
     ItemRecyclerViewAdapter adapter = new ItemRecyclerViewAdapter(itemsList);
     private ProgressDialog pDialog;
+
+    Spinner itemSpinner;
+    ArrayAdapter<Items> itemAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,9 +87,16 @@ public class ItemsActivity extends AppCompatActivity {
         firebaseFirestore = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
-        loadItemsFromFireStore();
 
-        System.out.println("hello");
+        itemSpinner = findViewById(R.id.itemSpinner);
+        itemAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, itemsSpinnerList);
+        itemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        itemSpinner.setAdapter(itemAdapter);
+        Items none = new Items();
+        none.setName("None");
+        itemsSpinnerList.add(none);
+
+        loadItemsFromFireStore();
 
 
     }
@@ -104,9 +118,11 @@ public class ItemsActivity extends AppCompatActivity {
                         Items item = q.toObject(Items.class);
                         System.out.println(item);
                         itemsList.add(item);
+                        itemsSpinnerList.add(item);
                     }
                     showProgressBar(false);
                     adapter.notifyDataSetChanged();
+                    itemAdapter.notifyDataSetChanged();
                 }
             }
         });
@@ -178,6 +194,16 @@ public class ItemsActivity extends AppCompatActivity {
 
                 itemName.setTag(item.getId());
                 itemPrice.setTag(position);
+                for (Items i : itemsSpinnerList) {
+                    if (i.getId() == null)
+                        continue;
+
+                    if (i.getId().equals(item.getRawMaterial())) {
+                        itemSpinner.setSelection(itemAdapter.getPosition(i));
+                        return;
+                    } else itemSpinner.setSelection(0);
+
+                }
             }
 
             @Override
@@ -193,6 +219,9 @@ public class ItemsActivity extends AppCompatActivity {
         String price = itemPrice.getText().toString();
         String cost = itemCost.getText().toString();
 
+        if (name.length() == 0)
+            return;
+
         final Items item = new Items();
         HashMap<String, Boolean> usedFor = new HashMap<>();
         item.setName(name);
@@ -207,9 +236,9 @@ public class ItemsActivity extends AppCompatActivity {
         usedFor.put(Constants.EXPENSES, expenses.isChecked());
         usedFor.put(Constants.LOAN, financeItem.isChecked());
         item.setUsedFor(usedFor);
-
-        if (name.length() == 0)
-            return;
+        if (itemSpinner.getSelectedItemPosition() != 0)
+            item.setRawMaterial(itemsSpinnerList.get(itemSpinner.getSelectedItemPosition()).getId());
+        else item.setRawMaterial(null);
 
         //update item if item has been selected before
         //if (globalItemPosition != -1 && globalITemId != null) {
@@ -247,6 +276,7 @@ public class ItemsActivity extends AppCompatActivity {
                 showProgressBar(false);
                 toast("Item " + item.getName() + " added successfully");
                 itemsList.add(item);
+                itemsSpinnerList.add(item);
                 resetView();
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -271,6 +301,7 @@ public class ItemsActivity extends AppCompatActivity {
                             showProgressBar(false);
                             Log.d(TAG, "DocumentSnapshot successfully deleted!");
                             itemsList.remove(UHelper.parseInt(itemPrice.getTag().toString()));
+                            itemsSpinnerList.remove(UHelper.parseInt(itemPrice.getTag().toString()) + 1);
                             resetView();
                         }
                     })
@@ -299,7 +330,10 @@ public class ItemsActivity extends AppCompatActivity {
         expenses.setChecked(false);
         financeItem.setChecked(false);
 
+        itemSpinner.setSelection(0);
+
         adapter.notifyDataSetChanged();
+        itemAdapter.notifyDataSetChanged();
     }
 
     private void toast(String text) {

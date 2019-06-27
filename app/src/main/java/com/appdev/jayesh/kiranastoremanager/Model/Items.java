@@ -9,6 +9,25 @@ public class Items {
     private double Price;
     private double Cost;
     private String id;
+    private double rawStock;
+
+    public double getRawStock() {
+        return rawStock;
+    }
+
+    public void setRawStock(double rawStock) {
+        this.rawStock = rawStock;
+    }
+
+    public String getRawMaterial() {
+        return rawMaterial;
+    }
+
+    public void setRawMaterial(String rawMaterial) {
+        this.rawMaterial = rawMaterial;
+    }
+
+    private String rawMaterial;
 
     public HashMap<String, Boolean> getUsedFor() {
         return UsedFor;

@@ -8,12 +8,15 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.appdev.jayesh.kiranastoremanager.Model.Transaction;
@@ -38,7 +41,6 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
 
         MyViewHolder(final View view) {
             super(view);
-
 
             itemName = view.findViewById(R.id.itemName);
             quantity = view.findViewById(R.id.quantity);
@@ -103,6 +105,7 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
 
                 }
             });
+
             note.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -132,24 +135,47 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
                 }
             });
 
-            uom.addTextChangedListener(new TextWatcher() {
+            uom.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                }
+                public void onClick(View v) {
+                    PopupMenu popup = new PopupMenu(view.getContext(), v);
+                    MenuInflater inflater = popup.getMenuInflater();
+                    inflater.inflate(R.menu.uom, popup.getMenu());
+                    popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem item) {
 
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    transactionList.get(getAdapterPosition()).setUom(s + "");
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
+                            switch (item.getItemId()) {
+                                case R.id.kg:
+                                    transactionList.get(getAdapterPosition()).setUom(item.getTitle().toString());
+                                    uom.setText(item.getTitle());
+                                    break;
+                                case R.id.gms:
+                                    transactionList.get(getAdapterPosition()).setUom(item.getTitle().toString());
+                                    uom.setText(item.getTitle());
+                                    break;
+                                case R.id.bag:
+                                    transactionList.get(getAdapterPosition()).setUom(item.getTitle().toString());
+                                    uom.setText(item.getTitle());
+                                    break;
+                                case R.id.pce:
+                                    transactionList.get(getAdapterPosition()).setUom(item.getTitle().toString());
+                                    uom.setText(item.getTitle());
+                                    break;
+                                default:
+                                    return false;
+                            }
+                            return false;
+                        }
+                    });
+                    popup.show();
                 }
             });
 
         }
 
     }
+
 
     public TransactionsRecyclerViewAdapter(List<Transaction> transactionList) {
         this.transactionList = transactionList;

@@ -45,7 +45,9 @@ public class Constants {
     public static final String Seperator = "&";
     public static final String ALL = "ALL";
     public static final String FREETEXTITEM = "Free Text Item";
+    public static final String INVENTORY = "Inventory";
 
 
-    public static final String OTHERS = "Others" ;
+    public static final String OTHERS = "Others";
+    public static final String RAWSTOCK = "rawStock";
 }

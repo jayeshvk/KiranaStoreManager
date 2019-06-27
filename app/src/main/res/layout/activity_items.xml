@@ -13,22 +13,52 @@
         android:hint="Item Name"
         android:inputType="text" />
 
-
-    <EditText
-        android:id="@+id/itemPrice"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="Enter Price"
-        android:inputType="numberDecimal" />
+        android:orientation="horizontal">
 
-    <EditText
-        android:id="@+id/itemCost"
+        <EditText
+            android:id="@+id/itemPrice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="Enter Price"
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/itemCost"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="Cost"
+            android:inputType="numberDecimal" />
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="Cost"
-        android:inputType="numberDecimal" />
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Is Product Of"
+            android:textSize="18sp" />
+
+        <Spinner
+            android:id="@+id/itemSpinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="Cost"
+            android:inputType="numberDecimal" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -111,8 +141,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="10dp"
-        android:scrollbars="vertical"
         android:paddingStart="5dp"
-        android:paddingEnd="5dp"/>
+        android:paddingEnd="5dp"
+        android:scrollbars="vertical" />
 
 </LinearLayout>

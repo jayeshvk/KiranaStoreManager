@@ -139,6 +139,7 @@ public class DateReport extends AppCompatActivity {
                 final Transaction transaction = transactionList.get(position);
                 final Transaction oldTransaction = transaction;
                 final double oldAmount = transaction.getAmount();
+                final double oldQuantity = transaction.getQuantity();
                 int sign;
                 //in case of credit sales, cash puchase, loan payment, vend payment,expenses
                 if (transaction.getTransactionType().equals(Constants.CASHSALES) ||
@@ -232,7 +233,6 @@ public class DateReport extends AppCompatActivity {
                 Button cancel = popupView.findViewById(R.id.cancel);
                 Button edit = popupView.findViewById(R.id.edit);
 
-
                 delete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -243,7 +243,7 @@ public class DateReport extends AppCompatActivity {
 
                         DocumentReference del = documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId());
                         batch.delete(del);
-                        updatePosting(transaction, oldAmount, 0);
+                        updatePosting(transaction, oldAmount, 0, oldQuantity);
                         if (oldAmount < 0)
                             out = out - oldAmount;
                         else in = in - oldAmount;
@@ -251,6 +251,8 @@ public class DateReport extends AppCompatActivity {
 
                         transactionList.remove(position);
                         popupWindow.dismiss();
+
+
                         batchWrite();
 
                     }
@@ -276,7 +278,7 @@ public class DateReport extends AppCompatActivity {
                         DocumentReference updateDocument = documentReference.collection(Constants.TRANSACTIONS).document(transaction.getId());
                         batch.set(updateDocument, transaction, SetOptions.merge());
 
-                        updatePosting(transaction, oldAmount, finalSign);
+                        updatePosting(transaction, oldAmount, finalSign, oldQuantity);
                         transactionList.set(position, transaction);
                         popupWindow.dismiss();
 
@@ -297,7 +299,7 @@ public class DateReport extends AppCompatActivity {
                         tvprice.setEnabled(true);
                         tvamount.setEnabled(true);
                         tvnote.setEnabled(true);
-                        uom.setEnabled(true);
+                        // uom.setEnabled(true);
                         update.setEnabled(true);
                     }
                 });
@@ -311,11 +313,12 @@ public class DateReport extends AppCompatActivity {
         }));
     }
 
-    private void updatePosting(Transaction transaction, double oldAmount, int sign) {
+    private void updatePosting(Transaction transaction, double oldAmount, int sign, double oldQuantity) {
 
         double diff = 0;
+        double quan;
 
-//sign = 0 to handle the deletion of an entry
+        //sign = 0 to handle the deletion of an entry
 
         if (sign == 0) {
             diff = transaction.getAmount();
@@ -326,7 +329,18 @@ public class DateReport extends AppCompatActivity {
             else if (transaction.getAmount() > 0)
                 diff = transaction.getAmount() - oldAmount;
         }
-
+        if (sign == 0) {
+            quan = transaction.getQuantity();
+        } else {
+            quan = transaction.getQuantity() - oldQuantity;
+        }
+        if (transaction.getTransactionType().equals(Constants.CREDITSALES) || transaction.getTransactionType().equals(Constants.CREDITPURCHASE)) {
+            Map<String, Object> inv = new HashMap<>();
+            inv.put("Stock", FieldValue.increment(quan));
+            inv.put("Item", transaction.getItemName());
+            DocumentReference updateInventory = documentReference.collection(Constants.INVENTORY).document(transaction.getItemId());
+            batch.set(updateInventory, inv, SetOptions.merge());
+        }
 
         if (transaction.getTransaction().equals(Constants.BANKING)) {
             //For updating Banking entries only
@@ -363,6 +377,8 @@ public class DateReport extends AppCompatActivity {
         if (transaction.getAmount() < 0)
             out = out + (diff * sign);
         balance = balance + (diff * sign);
+
+
     }
 
     private void updateFooter() {
@@ -370,21 +386,21 @@ public class DateReport extends AppCompatActivity {
         if (transactionTypeSpinner.getSelectedItem().toString().equals(Constants.CREDITSALES)) {
             tvin.setText("Credit Σ\n" + out);
             tvout.setText("Payment Σ\n" + in);
-            if (out > in)
+            if (-out > in)
                 tvbalance.setText("Due Σ\n" + String.format("%.2f", (out + in)));
             else
                 tvbalance.setText("Advance Σ\n" + String.format("%.2f", (out + in)));
         } else if (transactionTypeSpinner.getSelectedItem().toString().equals(Constants.CREDITPURCHASE)) {
             tvin.setText("Credit Σ\n" + in);
             tvout.setText("Payment Σ\n" + out);
-            if (out < in)
+            if (-in < out)
                 tvbalance.setText("Due Σ\n" + String.format("%.2f", (out + in)));
             else
                 tvbalance.setText("Advance Σ\n" + String.format("%.2f", (out + in)));
         } else if (transactionTypeSpinner.getSelectedItem().toString().equals(Constants.LOAN)) {
             tvin.setText("Loan Σ\n" + in);
             tvout.setText("Payment Σ\n" + out);
-            if (in > out)
+            if (in > -out)
                 tvbalance.setText("Due Σ\n" + String.format("%.2f", (out + in)));
             else
                 tvbalance.setText("Advance Σ\n" + String.format("%.2f", (out + in)));

@@ -18,7 +18,7 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
     private List<Items> itemsList;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView name;
+        public TextView name, stock;
         private CheckBox cashSale, creditSale, cashPurchase, creditPurchase, expenses, financeItem;
 
         MyViewHolder(View view) {
@@ -30,6 +30,8 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
             creditPurchase = view.findViewById(R.id.creditPurchase);
             expenses = view.findViewById(R.id.expenses);
             financeItem = view.findViewById(R.id.financeItem);
+            stock = view.findViewById(R.id.stock);
+
 
         }
 
@@ -58,6 +60,7 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
             holder.creditPurchase.setChecked(item.getUsedFor().get(Constants.CREDITPURCHASE));
             holder.expenses.setChecked(item.getUsedFor().get(Constants.EXPENSES));
             holder.financeItem.setChecked(item.getUsedFor().get(Constants.LOAN));
+            holder.stock.setText("Stock Qty: " + item.getRawStock());
         }
     }
 

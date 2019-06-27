@@ -96,6 +96,8 @@ public class CreditSales extends AppCompatActivity {
 
     TextView tvSummary;
 
+    List<Items> itemsList = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -155,7 +157,7 @@ public class CreditSales extends AppCompatActivity {
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
                     Items item = q.toObject(Items.class);
-
+                    itemsList.add(item);
                     Transaction transaction = new Transaction();
                     transaction.setItemName(item.getName());
                     transaction.setItemId(item.getId());
@@ -195,7 +197,7 @@ public class CreditSales extends AppCompatActivity {
                             toast("Error getting documents: " + task.getException());
                         }
                         showProgressBar(false);
-                        updateSummary();
+
                     }
                 });
 
@@ -386,15 +388,19 @@ public class CreditSales extends AppCompatActivity {
         if (adapter.total <= 0 || accountSpinner.getSelectedItem() == null)
             return;
 
-        for (final Transaction t : adapter.transactionList) {
-            if (t.getAmount() > 0) {
+        for (int i = 0; i < adapter.transactionList.size(); i++) {
+            Transaction t = adapter.transactionList.get(i);
 
-                DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
-                t.setAmount(t.getAmount() * sig);
+            if (t.getAmount() > 0) {
                 if (sig != sign)
                     t.setTransactionType(transactionTypeReverse);
                 else
                     t.setTransactionType(transactionType);
+
+
+                DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
+                t.setAmount(t.getAmount() * sig);
+
                 t.setAccountName(accountSpinner.getSelectedItem().toString());
                 String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
                 t.setTimeInMilli(UHelper.ddmmyyyyhmsTomili(datetime));
@@ -420,8 +426,27 @@ public class CreditSales extends AppCompatActivity {
                 DocumentReference updateDaySummary = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
                 batch.set(updateDaySummary, data, SetOptions.merge());
 
+                if (t.getTransactionType().equals(Constants.CREDITSALES)) {
+                    DocumentReference updateInventory = null;
+                    Map<String, Object> inv = new HashMap<>();
+                    inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * sig));
+                    if (itemsList.get(i).getRawMaterial() != null) {
+                        updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
+                    } else {
+                        updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
+                    }
+                    batch.set(updateInventory, inv, SetOptions.merge());
+                } else if (t.getTransactionType().equals(Constants.CREDITPURCHASE)) {
+                    Map<String, Object> inv = new HashMap<>();
+                    inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * sig));
+                    DocumentReference updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
+                    batch.set(updateInventory, inv, SetOptions.merge());
+
+                }
+
             }
         }
+
     }
 
     public void datePicker(final View view) {
@@ -496,17 +521,37 @@ public class CreditSales extends AppCompatActivity {
                     if (document.exists()) {
                         double in, out;
                         try {
-                            in = document.get(transactionType, Double.class);
-                            out = document.get(transactionTypeReverse, Double.class);
+                            in = Math.abs(document.get(transactionType, Double.class));
                         } catch (NullPointerException e) {
                             in = 0;
+                        }
+                        try {
+                            out = Math.abs(document.get(transactionTypeReverse, Double.class));
+
+                        } catch (NullPointerException e) {
                             out = 0;
                         }
+                        String text;
+                        if (transactionType.equals(Constants.CREDITSALES)) {
+                            if (out > in)
+                                text = "Advance " + Math.abs(out - in);
+                            else text = "Due " + Math.abs(in - out);
+
+                        } else if (transactionType.equals(Constants.CREDITPURCHASE)) {
+                            if (out > in)
+                                text = "Advance " + Math.abs(out - in);
+                            else text = "Due " + Math.abs(in - out);
+                        } else {
+                            if (in > out)
+                                text = "Due " + Math.abs(in - out);
+                            else text = "Advance " + Math.abs(out - in);
+                        }
+                        tvSummary.setText(text);
                         new AlertDialog.Builder(view.getContext())
                                 .setTitle("Summary ")
                                 .setMessage(transactionType + " Rs : " + document.get(transactionType) + "\n" +
                                         transactionTypeReverse + " Rs : " + document.get(transactionTypeReverse) + "\n" +
-                                        "Balance Rs : " + (in + out))
+                                        text)
                                 .setNegativeButton(android.R.string.no, null)
                                 .setIcon(R.drawable.ic_timeline_black_24dp)
                                 .show();
@@ -518,6 +563,7 @@ public class CreditSales extends AppCompatActivity {
                 }
             }
         });
+
     }
 
     private void updateSummary() {

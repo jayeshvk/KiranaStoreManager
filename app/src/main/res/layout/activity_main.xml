@@ -8,7 +8,11 @@
     tools:context=".MainActivity"
     tools:openDrawer="start">
 
-
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal">
     <TextView
         android:id="@+id/userTv"
         android:layout_width="match_parent"
@@ -16,12 +20,11 @@
         android:padding="10dp"
         android:text="user"
         android:textColor="@color/design_default_color_primary_dark" />
-
     <TableLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:stretchColumns="4">
+        android:stretchColumns="4"
+        android:paddingTop="20dp">
 
         <TableRow
             android:layout_width="wrap_content"
@@ -183,6 +186,9 @@
                 android:text="EXPENSES" />
         </TableRow>
     </TableLayout>
+</LinearLayout>
+
+
 
     <android.support.design.widget.NavigationView
         android:id="@+id/navigation_view"
@@ -195,7 +201,8 @@
             android:id="@+id/navigationmenu"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="@android:color/white" />
+            android:background="@android:color/white"
+            android:visibility="visible" />
     </android.support.design.widget.NavigationView>
 
 

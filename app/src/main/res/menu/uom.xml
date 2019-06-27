@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/kg"
+        android:title="Kg" />
+    <item
+        android:id="@+id/pce"
+        android:title="Pce"/>
+    <item
+        android:id="@+id/bag"
+        android:title="Bag"/>
+    <item
+        android:id="@+id/gms"
+        android:title="Gms"/>
+</menu>
