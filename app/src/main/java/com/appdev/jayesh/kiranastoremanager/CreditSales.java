@@ -314,6 +314,12 @@ public class CreditSales extends AppCompatActivity {
         // initiateAccountingEntries();
         saveFreeItems(sign);
         saveListItems(sign);
+        if (!isAccountAvailable())
+            return;
+
+        if (!isFreeItemAvailable() && !isItemListAvailable())
+            return;
+
         batchWrite();
     }
 
@@ -397,7 +403,6 @@ public class CreditSales extends AppCompatActivity {
                 else
                     t.setTransactionType(transactionType);
 
-
                 DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
                 t.setAmount(t.getAmount() * sig);
 
@@ -426,7 +431,7 @@ public class CreditSales extends AppCompatActivity {
                 DocumentReference updateDaySummary = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
                 batch.set(updateDaySummary, data, SetOptions.merge());
 
-                if (t.getTransactionType().equals(Constants.CREDITSALES)) {
+                if (t.getTransactionType().equals(Constants.CREDITSALES) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
                     DocumentReference updateInventory = null;
                     Map<String, Object> inv = new HashMap<>();
                     inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * sig));
@@ -436,7 +441,7 @@ public class CreditSales extends AppCompatActivity {
                         updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
                     }
                     batch.set(updateInventory, inv, SetOptions.merge());
-                } else if (t.getTransactionType().equals(Constants.CREDITPURCHASE)) {
+                } else if (t.getTransactionType().equals(Constants.CREDITPURCHASE) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
                     Map<String, Object> inv = new HashMap<>();
                     inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * sig));
                     DocumentReference updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
@@ -614,11 +619,7 @@ public class CreditSales extends AppCompatActivity {
     }
 
     public void batchWrite() {
-        if (!isAccountAvailable())
-            return;
 
-        if (!isFreeItemAvailable() && !isItemListAvailable())
-            return;
 
         showProgressBar(true, "Please wait, Saving Data");
         batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {

@@ -1,8 +1,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <itemName
+    <item
         android:id="@+id/add"
         android:icon="@drawable/ic_add_black_24dp"
-        android:title="Title"
+        android:orderInCategory="100"
+        android:title="Add Item"
         app:showAsAction="always" />
 </menu>

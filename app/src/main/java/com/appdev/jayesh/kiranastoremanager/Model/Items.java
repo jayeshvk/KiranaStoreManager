@@ -10,6 +10,33 @@ public class Items {
     private double Cost;
     private String id;
     private double rawStock;
+    private Boolean isInventory;
+    private Boolean isProcessed;
+    private Boolean isBatchItem;
+
+    public Boolean getIsInventory() {
+        return isInventory;
+    }
+
+    public void setIsInventory(Boolean inventory) {
+        isInventory = inventory;
+    }
+
+    public Boolean getIsProcessed() {
+        return isProcessed;
+    }
+
+    public void setIsProcessed(Boolean processed) {
+        isProcessed = processed;
+    }
+
+    public Boolean getIsBatchItem() {
+        return isBatchItem;
+    }
+
+    public void setIsBatchItem(Boolean batch) {
+        isBatchItem = batch;
+    }
 
     public double getRawStock() {
         return rawStock;

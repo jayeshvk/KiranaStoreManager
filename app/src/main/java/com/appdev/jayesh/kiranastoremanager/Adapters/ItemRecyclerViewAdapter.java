@@ -13,26 +13,24 @@ import com.appdev.jayesh.kiranastoremanager.R;
 
 import java.util.List;
 
-public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerViewAdapter.MyViewHolder> {
+public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerViewAdapter.viewHolder> {
 
     private List<Items> itemsList;
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
+    public class viewHolder extends RecyclerView.ViewHolder {
         public TextView name, stock;
         private CheckBox cashSale, creditSale, cashPurchase, creditPurchase, expenses, financeItem;
 
-        MyViewHolder(View view) {
-            super(view);
-            name = view.findViewById(R.id.name);
-            cashSale = view.findViewById(R.id.cashSale);
-            creditSale = view.findViewById(R.id.creditSale);
-            cashPurchase = view.findViewById(R.id.cashPurchase);
-            creditPurchase = view.findViewById(R.id.creditPurchase);
-            expenses = view.findViewById(R.id.expenses);
-            financeItem = view.findViewById(R.id.financeItem);
-            stock = view.findViewById(R.id.stock);
-
-
+        public viewHolder(View itemView) {
+            super(itemView);
+            name = itemView.findViewById(R.id.name);
+            cashSale = itemView.findViewById(R.id.cashSale);
+            creditSale = itemView.findViewById(R.id.creditSale);
+            cashPurchase = itemView.findViewById(R.id.cashPurchase);
+            creditPurchase = itemView.findViewById(R.id.creditPurchase);
+            expenses = itemView.findViewById(R.id.expenses);
+            financeItem = itemView.findViewById(R.id.financeItem);
+            stock = itemView.findViewById(R.id.stock);
         }
 
     }
@@ -42,15 +40,15 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
     }
 
     @Override
-    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public viewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.recyclerview_list_item_items, parent, false);
 
-        return new MyViewHolder(itemView);
+        return new viewHolder(itemView);
     }
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
+    public void onBindViewHolder(viewHolder holder, int position) {
         Items item = itemsList.get(position);
         holder.name.setText(item.getName());
         if (item.getUsedFor() != null) {
@@ -60,13 +58,17 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
             holder.creditPurchase.setChecked(item.getUsedFor().get(Constants.CREDITPURCHASE));
             holder.expenses.setChecked(item.getUsedFor().get(Constants.EXPENSES));
             holder.financeItem.setChecked(item.getUsedFor().get(Constants.LOAN));
+        }
+        if (item.getIsInventory() != null && item.getIsInventory()) {
+            holder.stock.setVisibility(View.VISIBLE);
             holder.stock.setText("Stock Qty: " + item.getRawStock());
         }
-    }
 
+    }
 
     @Override
     public int getItemCount() {
         return itemsList.size();
     }
+
 }

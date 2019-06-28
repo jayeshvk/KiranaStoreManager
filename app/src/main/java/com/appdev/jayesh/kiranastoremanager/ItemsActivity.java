@@ -1,6 +1,8 @@
 package com.appdev.jayesh.kiranastoremanager;
 
+import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -10,9 +12,12 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -40,28 +45,15 @@ public class ItemsActivity extends AppCompatActivity {
 
     private static final String TAG = "ItemsActivity";
 
-    EditText itemName;
-    EditText itemPrice;
-    EditText itemCost;
-    CheckBox cashSale;
-    CheckBox creditSale;
-    CheckBox cashPurchase;
-    CheckBox creditPurchase;
-    CheckBox expenses;
-    CheckBox financeItem;
-
-
     FirebaseFirestore firebaseFirestore;
     FirebaseAuth mAuth;
     FirebaseUser user;
     List<Items> itemsList = new ArrayList<>();
     List<Items> itemsSpinnerList = new ArrayList<>();
-    ItemRecyclerViewAdapter adapter = new ItemRecyclerViewAdapter(itemsList);
+    ItemRecyclerViewAdapter adapter;
     private ProgressDialog pDialog;
 
-    Spinner itemSpinner;
-    ArrayAdapter<Items> itemAdapter;
-
+    Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,16 +61,7 @@ public class ItemsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_items);
         this.setTitle("Manage Items");
 
-        itemName = findViewById(R.id.itemName);
-        itemPrice = findViewById(R.id.itemPrice);
-        itemCost = findViewById(R.id.itemCost);
-        cashSale = findViewById(R.id.cashSale);
-        creditSale = findViewById(R.id.creditSale);
-        cashPurchase = findViewById(R.id.cashPurchase);
-        creditPurchase = findViewById(R.id.creditPurchase);
-        expenses = findViewById(R.id.otherPayments);
-        financeItem = findViewById(R.id.financeItem);
-
+        adapter = new ItemRecyclerViewAdapter(itemsList);
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Please wait...");
         pDialog.setCancelable(false);
@@ -87,28 +70,16 @@ public class ItemsActivity extends AppCompatActivity {
         firebaseFirestore = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
-
-        itemSpinner = findViewById(R.id.itemSpinner);
-        itemAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, itemsSpinnerList);
-        itemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        itemSpinner.setAdapter(itemAdapter);
-        Items none = new Items();
-        none.setName("None");
-        itemsSpinnerList.add(none);
-
         loadItemsFromFireStore();
-
-
     }
 
     private void loadItemsFromFireStore() {
 
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(ItemsActivity.this));
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         recyclerView.setAdapter(adapter);
-
         showProgressBar(true);
         firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS).orderBy("name", Query.Direction.ASCENDING).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
@@ -118,11 +89,9 @@ public class ItemsActivity extends AppCompatActivity {
                         Items item = q.toObject(Items.class);
                         System.out.println(item);
                         itemsList.add(item);
-                        itemsSpinnerList.add(item);
                     }
                     showProgressBar(false);
                     adapter.notifyDataSetChanged();
-                    itemAdapter.notifyDataSetChanged();
                 }
             }
         });
@@ -181,29 +150,8 @@ public class ItemsActivity extends AppCompatActivity {
             @Override
             public void onClick(View view, int position) {
 
-                Items item = itemsList.get(position);
-                itemName.setText(item.getName());
-                itemPrice.setText(item.getPrice() + "");
-                itemCost.setText(item.getCost() + "");
-                cashSale.setChecked(item.getUsedFor().get(Constants.CASHSALES));
-                creditSale.setChecked(item.getUsedFor().get(Constants.CREDITSALES));
-                cashPurchase.setChecked(item.getUsedFor().get(Constants.CASHPURCHASE));
-                creditPurchase.setChecked(item.getUsedFor().get(Constants.CREDITPURCHASE));
-                expenses.setChecked(item.getUsedFor().get(Constants.EXPENSES));
-                financeItem.setChecked(item.getUsedFor().get(Constants.LOAN));
+                showPopUp(position);
 
-                itemName.setTag(item.getId());
-                itemPrice.setTag(position);
-                for (Items i : itemsSpinnerList) {
-                    if (i.getId() == null)
-                        continue;
-
-                    if (i.getId().equals(item.getRawMaterial())) {
-                        itemSpinner.setSelection(itemAdapter.getPosition(i));
-                        return;
-                    } else itemSpinner.setSelection(0);
-
-                }
             }
 
             @Override
@@ -211,49 +159,179 @@ public class ItemsActivity extends AppCompatActivity {
 
             }
         }));
+
     }
 
-    public void save(View view) {
+    private void showPopUp(int position) {
 
-        String name = itemName.getText().toString();
-        String price = itemPrice.getText().toString();
-        String cost = itemCost.getText().toString();
+        Items selectedItem = new Items();
 
-        if (name.length() == 0)
-            return;
+        dialog = new Dialog(ItemsActivity.this);
+        dialog.setContentView(R.layout.activity_items_edit);
+        dialog.setCancelable(false);
+        itemsSpinnerList.clear();
+        // custom dialog
 
-        final Items item = new Items();
-        HashMap<String, Boolean> usedFor = new HashMap<>();
-        item.setName(name);
-        item.setPrice(UHelper.parseDouble(price));
-        item.setCost(UHelper.parseDouble(cost));
-        if (itemName.getTag() != null)
-            item.setId(itemName.getTag().toString());
-        usedFor.put(Constants.CASHSALES, cashSale.isChecked());
-        usedFor.put(Constants.CREDITSALES, creditSale.isChecked());
-        usedFor.put(Constants.CASHPURCHASE, cashPurchase.isChecked());
-        usedFor.put(Constants.CREDITPURCHASE, creditPurchase.isChecked());
-        usedFor.put(Constants.EXPENSES, expenses.isChecked());
-        usedFor.put(Constants.LOAN, financeItem.isChecked());
-        item.setUsedFor(usedFor);
-        if (itemSpinner.getSelectedItemPosition() != 0)
-            item.setRawMaterial(itemsSpinnerList.get(itemSpinner.getSelectedItemPosition()).getId());
-        else item.setRawMaterial(null);
+        Button savePopupBtn = dialog.findViewById(R.id.save);
+        Button deletePopupBtn = dialog.findViewById(R.id.delete);
+        Button closePopupBtn = dialog.findViewById(R.id.close);
+
+        EditText itemName = dialog.findViewById(R.id.itemName);
+        EditText itemPrice = dialog.findViewById(R.id.itemPrice);
+        EditText itemCost = dialog.findViewById(R.id.itemCost);
+        CheckBox cashSale = dialog.findViewById(R.id.cashSale);
+        CheckBox creditSale = dialog.findViewById(R.id.creditSale);
+        CheckBox cashPurchase = dialog.findViewById(R.id.cashPurchase);
+        CheckBox creditPurchase = dialog.findViewById(R.id.creditPurchase);
+        CheckBox expenses = dialog.findViewById(R.id.otherPayments);
+        CheckBox financeItem = dialog.findViewById(R.id.financeItem);
+        CheckBox isInventory = dialog.findViewById(R.id.isInventory);
+        CheckBox isProcessed = dialog.findViewById(R.id.isProcessed);
+        CheckBox isBatchItem = dialog.findViewById(R.id.isBatchItem);
+        Spinner itemSpinner = dialog.findViewById(R.id.itemSpinner);
+
+        ArrayAdapter<Items> itemAdapter = new ArrayAdapter<>(ItemsActivity.this, android.R.layout.simple_spinner_item, itemsSpinnerList);
+        itemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        itemSpinner.setAdapter(itemAdapter);
+        Items none = new Items();
+        none.setName("None");
+        itemsSpinnerList.add(none);
+        itemsSpinnerList.addAll(itemsList);
+        itemAdapter.notifyDataSetChanged();
+        dialog.show();
+
+        if (itemsList.size() > 0 && position != -1) {
+            selectedItem = itemsList.get(position);
+            itemName.setText(selectedItem.getName());
+            itemPrice.setText(selectedItem.getPrice() + "");
+            itemCost.setText(selectedItem.getCost() + "");
+            cashSale.setChecked(selectedItem.getUsedFor().get(Constants.CASHSALES));
+            creditSale.setChecked(selectedItem.getUsedFor().get(Constants.CREDITSALES));
+            cashPurchase.setChecked(selectedItem.getUsedFor().get(Constants.CASHPURCHASE));
+            creditPurchase.setChecked(selectedItem.getUsedFor().get(Constants.CREDITPURCHASE));
+            expenses.setChecked(selectedItem.getUsedFor().get(Constants.EXPENSES));
+            financeItem.setChecked(selectedItem.getUsedFor().get(Constants.LOAN));
+
+            if (selectedItem.getIsInventory() != null)
+                isInventory.setChecked(selectedItem.getIsInventory());
+            if (selectedItem.getIsBatchItem() != null)
+                isBatchItem.setChecked(selectedItem.getIsBatchItem());
+            if (selectedItem.getIsProcessed() != null)
+                isProcessed.setChecked(selectedItem.getIsProcessed());
+
+            for (Items i : itemsSpinnerList) {
+                if (i.getId() != null) {
+                    if (i.getId().equals(selectedItem.getRawMaterial())) {
+                        itemSpinner.setSelection(itemAdapter.getPosition(i));
+                        break;
+                    } else itemSpinner.setSelection(0);
+                }
+            }
+        }
+
+        Items finalSelectedItem = selectedItem;
+
+        savePopupBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View v1 = getCurrentFocus();
+                if (v1 != null) {
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v1.getWindowToken(), 0);
+                }
+
+                if (itemName.getText().toString().length() == 0)
+                    return;
+
+                Items item = new Items();
+                item.setId(finalSelectedItem.getId());
+                item.setName(itemName.getText().toString());
+                item.setPrice(UHelper.parseDouble(itemPrice.getText().toString()));
+                item.setCost(UHelper.parseDouble(itemCost.getText().toString()));
+                HashMap<String, Boolean> usedFor = new HashMap<>();
+                usedFor.put(Constants.CASHSALES, cashSale.isChecked());
+                usedFor.put(Constants.CREDITSALES, creditSale.isChecked());
+                usedFor.put(Constants.CASHPURCHASE, cashPurchase.isChecked());
+                usedFor.put(Constants.CREDITPURCHASE, creditPurchase.isChecked());
+                usedFor.put(Constants.EXPENSES, expenses.isChecked());
+                usedFor.put(Constants.LOAN, financeItem.isChecked());
+                item.setUsedFor(usedFor);
+                item.setIsInventory(isInventory.isChecked());
+                item.setIsProcessed(isProcessed.isChecked());
+                item.setIsBatchItem(isBatchItem.isChecked());
+                if (itemSpinner.getSelectedItemPosition() != 0)
+                    item.setRawMaterial(itemsSpinnerList.get(itemSpinner.getSelectedItemPosition()).getId());
+                else item.setRawMaterial(null);
+
+                saveOrUpdate(item, position);
+            }
+        });
+        deletePopupBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View v1 = getCurrentFocus();
+                if (v1 != null) {
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v1.getWindowToken(), 0);
+                }
+                if (finalSelectedItem.getId() != null) {
+                    showProgressBar(true);
+                    firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS).document(finalSelectedItem.getId())
+                            .delete()
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    showProgressBar(false);
+                                    itemsList.remove(position);
+                                    adapter.notifyDataSetChanged();
+                                    dialog.dismiss();
+                                }
+
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    showProgressBar(false);
+                                    Log.w(TAG, "Error deleting document", e);
+                                }
+                            });
+                }
+            }
+
+
+        });
+        closePopupBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View v1 = getCurrentFocus();
+                if (v1 != null) {
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v1.getWindowToken(), 0);
+                }
+                dialog.dismiss();
+                dialog = null;
+            }
+        });
+
+    }
+
+    public void saveOrUpdate(Items item, int position) {
 
         //update item if item has been selected before
         //if (globalItemPosition != -1 && globalITemId != null) {
-        if (itemName.getTag() != null) {
+        if (item.getId() != null) {
             showProgressBar(true);
-            firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ITEMS).document(itemName.getTag().toString())
+            firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ITEMS).document(item.getId())
                     .set(item, SetOptions.merge())
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
                             toast("Item " + item.getName() + " updated successfully");
-                            itemsList.set(UHelper.parseInt(itemPrice.getTag().toString()), item);
-                            resetView();
+                            itemsList.set(position, item);
                             showProgressBar(false);
-
+                            dialog.dismiss();
+                            dialog = null;
+                            adapter.notifyDataSetChanged();
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
@@ -263,77 +341,33 @@ public class ItemsActivity extends AppCompatActivity {
                             Log.d(TAG, "Error writing document", e);
                         }
                     });
-            return;
+        } else {
+
+            // Add a new document with a generated ID
+            DocumentReference documentItem = firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS).document();
+            item.setId(documentItem.getId());
+            documentItem.set(item, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    showProgressBar(false);
+                    toast("Item " + item.getName() + " added successfully");
+                    itemsList.add(item);
+                    itemsSpinnerList.add(item);
+                    dialog.dismiss();
+                    dialog = null;
+                    adapter.notifyDataSetChanged();
+
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    showProgressBar(false);
+                    Log.d(TAG, "Error adding document try again " + e);
+
+                }
+            });
         }
 
-
-        // Add a new document with a generated ID
-        DocumentReference documentItem = firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS).document();
-        item.setId(documentItem.getId());
-        documentItem.set(item, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                showProgressBar(false);
-                toast("Item " + item.getName() + " added successfully");
-                itemsList.add(item);
-                itemsSpinnerList.add(item);
-                resetView();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                showProgressBar(false);
-                Log.d(TAG, "Error adding document try again " + e);
-
-            }
-        });
-    }
-
-    public void delete(View view) {
-        //  if (globalItemPosition != -1 && globalITemId != null) {
-        if (itemName.getTag() != null) {
-            showProgressBar(true);
-            firebaseFirestore.collection(Constants.USERS).document(mAuth.getCurrentUser().getUid()).collection(Constants.ITEMS).document(itemName.getTag().toString())
-                    .delete()
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
-                            showProgressBar(false);
-                            Log.d(TAG, "DocumentSnapshot successfully deleted!");
-                            itemsList.remove(UHelper.parseInt(itemPrice.getTag().toString()));
-                            itemsSpinnerList.remove(UHelper.parseInt(itemPrice.getTag().toString()) + 1);
-                            resetView();
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            showProgressBar(false);
-                            Log.w(TAG, "Error deleting document", e);
-                        }
-                    });
-        }
-    }
-
-    private void resetView() {
-        itemName.setTag(null);
-        itemPrice.setTag(null);
-
-        itemName.setText(null);
-        itemPrice.setText(null);
-        itemCost.setText(null);
-
-        cashSale.setChecked(false);
-        creditSale.setChecked(false);
-        cashPurchase.setChecked(false);
-        creditPurchase.setChecked(false);
-        expenses.setChecked(false);
-        financeItem.setChecked(false);
-
-        itemSpinner.setSelection(0);
-
-        adapter.notifyDataSetChanged();
-        itemAdapter.notifyDataSetChanged();
     }
 
     private void toast(String text) {
@@ -363,22 +397,19 @@ public class ItemsActivity extends AppCompatActivity {
         });
     }
 
-    // create an action bar button
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu, menu);
-        return super.onCreateOptionsMenu(menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+
+        return true;
     }
 
-    // handle button activities
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.add) {
-            resetView();
-        }
+        if (item.getItemId() == R.id.add)
+            showPopUp(-1);
         return super.onOptionsItemSelected(item);
     }
-
 
 }

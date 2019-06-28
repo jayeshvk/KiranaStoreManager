@@ -1,7 +1,6 @@
 package com.appdev.jayesh.kiranastoremanager;
 
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -123,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
         reportItems.add("Date Report");
         reportItems.add("Item Summary");
         reportItems.add("Sales Summary");
+        reportItems.add("Stock Report");
         listDataChild.put(report, reportItems);
 
         ExpandedMenuModel logout = new ExpandedMenuModel("Logout", R.drawable.ic_exit_to_app_black_24dp, false);
@@ -181,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
                 mDrawerLayout.closeDrawer(Gravity.START);
                 //startActivity(new Intent(MainActivity.this, Reports.class));
                 startActivity(new Intent(MainActivity.this, AccountsActivity.class));
-
                 break;
             case "Date Report":
                 mDrawerLayout.closeDrawer(Gravity.START);
@@ -194,27 +193,28 @@ public class MainActivity extends AppCompatActivity {
             case "Settings":
                 mDrawerLayout.closeDrawer(Gravity.START);
                 startActivity(new Intent(MainActivity.this, Settings.class));
-
                 break;
             case "Item Summary":
                 mDrawerLayout.closeDrawer(Gravity.START);
                 startActivity(new Intent(MainActivity.this, ItemSummaryReport.class));
-
                 break;
             case "Days Summary":
                 mDrawerLayout.closeDrawer(Gravity.START);
                 startActivity(new Intent(MainActivity.this, DaysSummaryReport.class));
-
                 break;
             case "Sales Summary":
                 mDrawerLayout.closeDrawer(Gravity.START);
                 startActivity(new Intent(MainActivity.this, SalesSummaryReport.class));
+                break;
             case "About":
                 mDrawerLayout.closeDrawer(Gravity.START);
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage("Please Contact jayeshvk@gmail.com before using the app and if you want any info on the app or need additional functionality to suit your requirement");
                 builder.create().show();
-
+                break;
+            case "Stock Report":
+                mDrawerLayout.closeDrawer(Gravity.START);
+                startActivity(new Intent(MainActivity.this, StockReport.class));
                 break;
             case "Logout":
                 progressDialog.show();
