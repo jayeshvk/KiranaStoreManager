@@ -17,19 +17,6 @@
             android:text="Item Name"
             android:textStyle="bold" />
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-
-        <TextView
-            android:id="@+id/stock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="end"
-            android:text="Stock"
-            android:textStyle="bold"
-            android:visibility="gone" />
     </LinearLayout>
 
 

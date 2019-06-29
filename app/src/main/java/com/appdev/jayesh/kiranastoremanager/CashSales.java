@@ -78,6 +78,7 @@ public class CashSales extends AppCompatActivity {
     int sign;
 
     WriteBatch batch;
+    List<Items> itemsList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,6 +139,7 @@ public class CashSales extends AppCompatActivity {
                     transaction.setItemName(item.getName());
                     transaction.setItemId(q.getId());
                     transactionList.add(transaction);
+                    itemsList.add(item);
 
                 }
                 showProgressBar(false);
@@ -261,7 +263,8 @@ public class CashSales extends AppCompatActivity {
         if (adapter.total <= 0)
             return;
 
-        for (final Transaction t : adapter.transactionList) {
+        for (int i = 0; i < adapter.transactionList.size(); i++) {
+            Transaction t = adapter.transactionList.get(i);
             if (t.getAmount() > 0) {
                 DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
                 double temp = t.getAmount() * sign;
@@ -283,6 +286,24 @@ public class CashSales extends AppCompatActivity {
 
                 batch.set(daySales, data, SetOptions.merge());
                 batch.set(newDocument, t);
+
+                if (t.getTransactionType().equals(Constants.CASHPURCHASE) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
+                    DocumentReference updateInventory = null;
+                    Map<String, Object> inv = new HashMap<>();
+                    inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * 1));
+                    if (itemsList.get(i).getRawMaterial() != null) {
+                        updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
+                    } else {
+                        updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
+                    }
+                    batch.set(updateInventory, inv, SetOptions.merge());
+                } else if (t.getTransactionType().equals(Constants.CASHSALES) && itemsList.get(i).getIsInventory() != null || (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
+                    Map<String, Object> inv = new HashMap<>();
+                    inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * -1));
+                    DocumentReference updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
+                    batch.set(updateInventory, inv, SetOptions.merge());
+
+                }
 
             }
         }

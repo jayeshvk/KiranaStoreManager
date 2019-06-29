@@ -18,7 +18,7 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
     private List<Items> itemsList;
 
     public class viewHolder extends RecyclerView.ViewHolder {
-        public TextView name, stock;
+        public TextView name;
         private CheckBox cashSale, creditSale, cashPurchase, creditPurchase, expenses, financeItem;
 
         public viewHolder(View itemView) {
@@ -30,7 +30,6 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
             creditPurchase = itemView.findViewById(R.id.creditPurchase);
             expenses = itemView.findViewById(R.id.expenses);
             financeItem = itemView.findViewById(R.id.financeItem);
-            stock = itemView.findViewById(R.id.stock);
         }
 
     }
@@ -59,11 +58,6 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
             holder.expenses.setChecked(item.getUsedFor().get(Constants.EXPENSES));
             holder.financeItem.setChecked(item.getUsedFor().get(Constants.LOAN));
         }
-        if (item.getIsInventory() != null && item.getIsInventory()) {
-            holder.stock.setVisibility(View.VISIBLE);
-            holder.stock.setText("Stock Qty: " + item.getRawStock());
-        }
-
     }
 
     @Override

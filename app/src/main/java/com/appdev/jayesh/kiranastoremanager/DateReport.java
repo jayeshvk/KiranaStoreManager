@@ -316,30 +316,25 @@ public class DateReport extends AppCompatActivity {
     private void updatePosting(Transaction transaction, double oldAmount, int sign, double oldQuantity) {
 
         double diff = 0;
-        double quan;
+        double quan = 0;
 
         //sign = 0 to handle the deletion of an entry
-
         if (sign == 0) {
             diff = transaction.getAmount();
         } else {
             //-1 in case of liability and +1 in case of asset
-            if (transaction.getAmount() < 0)
+            if (transaction.getAmount() < 0) {
                 diff = -(oldAmount - transaction.getAmount());
-            else if (transaction.getAmount() > 0)
+            } else if (transaction.getAmount() > 0) {
                 diff = transaction.getAmount() - oldAmount;
+            }
         }
-        if (sign == 0) {
-            quan = transaction.getQuantity();
-        } else {
-            quan = transaction.getQuantity() - oldQuantity;
-        }
-        if (transaction.getTransactionType().equals(Constants.CREDITSALES) || transaction.getTransactionType().equals(Constants.CREDITPURCHASE)) {
-            Map<String, Object> inv = new HashMap<>();
-            inv.put("Stock", FieldValue.increment(quan));
-            inv.put("Item", transaction.getItemName());
-            DocumentReference updateInventory = documentReference.collection(Constants.INVENTORY).document(transaction.getItemId());
-            batch.set(updateInventory, inv, SetOptions.merge());
+        //this is for Inventory adjustment if modificaion or deletion occured
+        if (transaction.getTransactionType().equals(Constants.CREDITSALES)
+                || transaction.getTransactionType().equals(Constants.CREDITPURCHASE)
+                || transaction.getTransactionType().equals(Constants.CASHSALES)
+                || transaction.getTransactionType().equals(Constants.CASHPURCHASE)) {
+            updateInventory(oldQuantity, transaction, sign);
         }
 
         if (transaction.getTransaction().equals(Constants.BANKING)) {
@@ -378,7 +373,40 @@ public class DateReport extends AppCompatActivity {
             out = out + (diff * sign);
         balance = balance + (diff * sign);
 
+    }
 
+    private void updateInventory(double oldQuantity, Transaction transaction, int sign) {
+        if (transaction.getItemId() == null)
+            return;
+        Items item = new Items();
+        //loop through each item and find the item data
+        for (Items i : itemsList) {
+            if (i.getId() != null && i.getId().equals(transaction.getItemId())) {
+                item = i;
+                break;
+            }
+        }
+        if ((item.getIsInventory() || item.getRawMaterial() != null)) {
+            DocumentReference updateInventory = null;
+            Map<String, Object> inv = new HashMap<>();
+            if (sign == 0) {
+                if (transaction.getTransactionType().equals(Constants.CASHSALES) || transaction.getTransactionType().equals(Constants.CREDITSALES))
+                    inv.put(Constants.RAWSTOCK, FieldValue.increment(oldQuantity));
+                else if (transaction.getTransactionType().equals(Constants.CASHPURCHASE) || transaction.getTransactionType().equals(Constants.CREDITPURCHASE))
+                    inv.put(Constants.RAWSTOCK, FieldValue.increment(-oldQuantity));
+            } else {
+                if (transaction.getTransactionType().equals(Constants.CASHSALES) || transaction.getTransactionType().equals(Constants.CREDITSALES))
+                    inv.put(Constants.RAWSTOCK, FieldValue.increment(oldQuantity - transaction.getQuantity()));
+                else if (transaction.getTransactionType().equals(Constants.CASHPURCHASE) || transaction.getTransactionType().equals(Constants.CREDITPURCHASE))
+                    inv.put(Constants.RAWSTOCK, FieldValue.increment(transaction.getQuantity() - oldQuantity));
+            }
+            if (item.getRawMaterial() != null) {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(item.getRawMaterial());
+            } else {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(item.getId());
+            }
+            batch.set(updateInventory, inv, SetOptions.merge());
+        }
     }
 
     private void updateFooter() {

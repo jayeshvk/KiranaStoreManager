@@ -189,6 +189,7 @@ public class ItemsActivity extends AppCompatActivity {
         CheckBox isProcessed = dialog.findViewById(R.id.isProcessed);
         CheckBox isBatchItem = dialog.findViewById(R.id.isBatchItem);
         Spinner itemSpinner = dialog.findViewById(R.id.itemSpinner);
+        EditText stock = dialog.findViewById(R.id.stock);
 
         ArrayAdapter<Items> itemAdapter = new ArrayAdapter<>(ItemsActivity.this, android.R.layout.simple_spinner_item, itemsSpinnerList);
         itemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -198,6 +199,15 @@ public class ItemsActivity extends AppCompatActivity {
         itemsSpinnerList.add(none);
         itemsSpinnerList.addAll(itemsList);
         itemAdapter.notifyDataSetChanged();
+        isInventory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isInventory.isChecked())
+                    stock.setVisibility(View.VISIBLE);
+                else
+                    stock.setVisibility(View.GONE);
+            }
+        });
         dialog.show();
 
         if (itemsList.size() > 0 && position != -1) {
@@ -212,12 +222,13 @@ public class ItemsActivity extends AppCompatActivity {
             expenses.setChecked(selectedItem.getUsedFor().get(Constants.EXPENSES));
             financeItem.setChecked(selectedItem.getUsedFor().get(Constants.LOAN));
 
-            if (selectedItem.getIsInventory() != null)
-                isInventory.setChecked(selectedItem.getIsInventory());
-            if (selectedItem.getIsBatchItem() != null)
-                isBatchItem.setChecked(selectedItem.getIsBatchItem());
-            if (selectedItem.getIsProcessed() != null)
-                isProcessed.setChecked(selectedItem.getIsProcessed());
+            isInventory.setChecked(selectedItem.getIsInventory());
+            isBatchItem.setChecked(selectedItem.getIsBatchItem());
+            isProcessed.setChecked(selectedItem.getIsProcessed());
+            if (selectedItem.getIsInventory()) {
+                stock.setVisibility(View.VISIBLE);
+                stock.setText(selectedItem.getRawStock() + "");
+            }
 
             for (Items i : itemsSpinnerList) {
                 if (i.getId() != null) {
@@ -259,9 +270,16 @@ public class ItemsActivity extends AppCompatActivity {
                 item.setIsInventory(isInventory.isChecked());
                 item.setIsProcessed(isProcessed.isChecked());
                 item.setIsBatchItem(isBatchItem.isChecked());
-                if (itemSpinner.getSelectedItemPosition() != 0)
-                    item.setRawMaterial(itemsSpinnerList.get(itemSpinner.getSelectedItemPosition()).getId());
-                else item.setRawMaterial(null);
+                if (item.getIsInventory())
+                    item.setRawStock(UHelper.parseDouble(stock.getText().toString()));
+                if (itemSpinner.getSelectedItemPosition() != 0) {
+                    if (itemsSpinnerList.get(itemSpinner.getSelectedItemPosition()).getIsInventory())
+                        item.setRawMaterial(itemsSpinnerList.get(itemSpinner.getSelectedItemPosition()).getId());
+                    else {
+                        toast(itemsSpinnerList.get(itemSpinner.getSelectedItemPosition()).getName() + " - is not an Inventory Item");
+                        return;
+                    }
+                } else item.setRawMaterial(null);
 
                 saveOrUpdate(item, position);
             }
@@ -316,9 +334,11 @@ public class ItemsActivity extends AppCompatActivity {
     }
 
     public void saveOrUpdate(Items item, int position) {
+        if (item.getIsInventory() && item.getRawMaterial() != null) {
+            toast("Item can be either Inventory Item or Raw Material");
+            return;
+        }
 
-        //update item if item has been selected before
-        //if (globalItemPosition != -1 && globalITemId != null) {
         if (item.getId() != null) {
             showProgressBar(true);
             firebaseFirestore.collection(Constants.USERS).document(mAuth.getUid()).collection(Constants.ITEMS).document(item.getId())
