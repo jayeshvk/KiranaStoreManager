@@ -8,10 +8,13 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.appdev.jayesh.kiranastoremanager.Model.SalesOrder;
@@ -126,19 +129,40 @@ public class SalesOrderRecyclerViewAdapter extends RecyclerView.Adapter<SalesOrd
                 }
             });
 
-            uom.addTextChangedListener(new TextWatcher() {
+            uom.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                }
+                public void onClick(View v) {
+                    PopupMenu popup = new PopupMenu(view.getContext(), v);
+                    MenuInflater inflater = popup.getMenuInflater();
+                    inflater.inflate(R.menu.uom, popup.getMenu());
+                    popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem item) {
 
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    salesOrderList.get(getAdapterPosition()).setUom(s + "");
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
-                    System.out.println(" after text changed " + uom.getText().toString());
+                            switch (item.getItemId()) {
+                                case R.id.kg:
+                                    salesOrderList.get(getAdapterPosition()).setUom(item.getTitle().toString());
+                                    uom.setText(item.getTitle());
+                                    break;
+                                case R.id.gms:
+                                    salesOrderList.get(getAdapterPosition()).setUom(item.getTitle().toString());
+                                    uom.setText(item.getTitle());
+                                    break;
+                                case R.id.bag:
+                                    salesOrderList.get(getAdapterPosition()).setUom(item.getTitle().toString());
+                                    uom.setText(item.getTitle());
+                                    break;
+                                case R.id.pce:
+                                    salesOrderList.get(getAdapterPosition()).setUom(item.getTitle().toString());
+                                    uom.setText(item.getTitle());
+                                    break;
+                                default:
+                                    return false;
+                            }
+                            return false;
+                        }
+                    });
+                    popup.show();
                 }
             });
 
@@ -162,6 +186,7 @@ public class SalesOrderRecyclerViewAdapter extends RecyclerView.Adapter<SalesOrd
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         SalesOrder transaction = salesOrderList.get(position);
+        transaction.setNotes(null);
         holder.itemName.setText(transaction.getItemName());
         holder.quantity.setText("");
         holder.price.setText("");

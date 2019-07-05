@@ -329,7 +329,7 @@ public class DateReport extends AppCompatActivity {
                 diff = transaction.getAmount() - oldAmount;
             }
         }
-        //this is for Inventory adjustment if modificaion or deletion occured
+        //this is for Inventory adjustment if modification or deletion occured
         if (transaction.getTransactionType().equals(Constants.CREDITSALES)
                 || transaction.getTransactionType().equals(Constants.CREDITPURCHASE)
                 || transaction.getTransactionType().equals(Constants.CASHSALES)

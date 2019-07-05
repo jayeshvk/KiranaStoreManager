@@ -3,8 +3,10 @@ package com.appdev.jayesh.kiranastoremanager;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -87,7 +89,6 @@ public class ItemsActivity extends AppCompatActivity {
                 if (queryDocumentSnapshots != null) {
                     for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
                         Items item = q.toObject(Items.class);
-                        System.out.println(item);
                         itemsList.add(item);
                     }
                     showProgressBar(false);
@@ -190,6 +191,7 @@ public class ItemsActivity extends AppCompatActivity {
         CheckBox isBatchItem = dialog.findViewById(R.id.isBatchItem);
         Spinner itemSpinner = dialog.findViewById(R.id.itemSpinner);
         EditText stock = dialog.findViewById(R.id.stock);
+        Button editStock = dialog.findViewById(R.id.editStock);
 
         ArrayAdapter<Items> itemAdapter = new ArrayAdapter<>(ItemsActivity.this, android.R.layout.simple_spinner_item, itemsSpinnerList);
         itemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -202,14 +204,38 @@ public class ItemsActivity extends AppCompatActivity {
         isInventory.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isInventory.isChecked())
+                if (isInventory.isChecked()) {
                     stock.setVisibility(View.VISIBLE);
-                else
+                    editStock.setVisibility(View.VISIBLE);
+                } else {
                     stock.setVisibility(View.GONE);
+                    editStock.setVisibility(View.GONE);
+                }
+            }
+        });
+        editStock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder conf = new AlertDialog.Builder(v.getContext());
+                conf.setMessage("Are you sure you want to adjust Stock?")
+                        .setCancelable(false)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                stock.setEnabled(true);
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                //  Action for 'NO' Button
+                                dialog.cancel();
+                            }
+                        });
+                conf.create().show();
             }
         });
         dialog.show();
 
+        //Load item data on the screen
         if (itemsList.size() > 0 && position != -1) {
             selectedItem = itemsList.get(position);
             itemName.setText(selectedItem.getName());
@@ -225,9 +251,11 @@ public class ItemsActivity extends AppCompatActivity {
             isInventory.setChecked(selectedItem.getIsInventory());
             isBatchItem.setChecked(selectedItem.getIsBatchItem());
             isProcessed.setChecked(selectedItem.getIsProcessed());
-            if (selectedItem.getIsInventory()) {
+
+            if (selectedItem.getIsInventory() != null && selectedItem.getIsInventory()) {
                 stock.setVisibility(View.VISIBLE);
                 stock.setText(selectedItem.getRawStock() + "");
+                editStock.setVisibility(View.VISIBLE);
             }
 
             for (Items i : itemsSpinnerList) {

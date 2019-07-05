@@ -133,6 +133,7 @@ public class SalesOrdersReport extends AppCompatActivity {
                 final EditText tvamount = popupView.findViewById(R.id.amount);
                 final EditText tvnote = popupView.findViewById(R.id.note);
                 final EditText tvUom = popupView.findViewById(R.id.uom);
+                final TextView rdd = popupView.findViewById(R.id.deliveryDate);
 
                 final RadioButton open = popupView.findViewById(R.id.open);
                 final RadioButton delivered = popupView.findViewById(R.id.delivered);
@@ -146,6 +147,7 @@ public class SalesOrdersReport extends AppCompatActivity {
                 tvamount.setText(salesOrder.getAmount() + "");
                 tvnote.setText(salesOrder.getNotes());
                 tvUom.setText(salesOrder.getUom());
+                rdd.setText(UHelper.militoddmmyyyy(salesOrder.getRdd()));
 
                 if (salesOrder.getStatus().equals(open.getText().toString()))
                     open.setChecked(true);
@@ -294,7 +296,6 @@ public class SalesOrdersReport extends AppCompatActivity {
                         tvprice.setEnabled(true);
                         tvamount.setEnabled(true);
                         tvnote.setEnabled(true);
-                        tvUom.setEnabled(true);
                         statusGroup.setBackgroundColor(Color.parseColor("#ffffff"));
                         for (int i = 0; i < statusGroup.getChildCount(); i++) {
                             statusGroup.getChildAt(i).setEnabled(true);

@@ -22,6 +22,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -97,6 +98,9 @@ public class CreditSales extends AppCompatActivity {
     TextView tvSummary;
 
     List<Items> itemsList = new ArrayList<>();
+
+    //tp stop batch write when stock relevant item does not have quantity
+    boolean save;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,6 +205,17 @@ public class CreditSales extends AppCompatActivity {
                     }
                 });
 
+        accountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateSummary();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
     private void setListeners() {
@@ -314,9 +329,8 @@ public class CreditSales extends AppCompatActivity {
         // initiateAccountingEntries();
         saveFreeItems(sign);
         saveListItems(sign);
-
-
-        batchWrite();
+        if (save)
+            batchWrite();
     }
 
     public void savePaymentsButton(View view) {
@@ -347,7 +361,7 @@ public class CreditSales extends AppCompatActivity {
     }
 
     private void saveFreeItems(int sig) {
-        if (UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0 && accountSpinner.getSelectedItem() != null) {
+        if (isFreeItemAvailable()) {
             Transaction t = new Transaction();
             DocumentReference freeItemDocument = documentReference.collection(Constants.TRANSACTIONS).document();
             String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
@@ -383,21 +397,26 @@ public class CreditSales extends AppCompatActivity {
             batch.set(freeItemDocument, t);
             batch.set(accountEntry, data, SetOptions.merge());
             batch.set(doc, data, SetOptions.merge());
+
+            save = true;
         }
     }
 
     public void saveListItems(int sig) {
-        if (adapter.total <= 0 || accountSpinner.getSelectedItem() == null)
+        if (adapter.total <= 0 || accountSpinner.getSelectedItem() == null) {
             return;
+        }
 
         for (int i = 0; i < adapter.transactionList.size(); i++) {
             Transaction t = adapter.transactionList.get(i);
 
+
+            if (sig != sign)
+                t.setTransactionType(transactionTypeReverse);
+            else
+                t.setTransactionType(transactionType);
             if (t.getAmount() > 0) {
-                if (sig != sign)
-                    t.setTransactionType(transactionTypeReverse);
-                else
-                    t.setTransactionType(transactionType);
+
 
                 DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
                 t.setAmount(t.getAmount() * sig);
@@ -410,6 +429,16 @@ public class CreditSales extends AppCompatActivity {
                 t.setAccountId(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
                 t.setTransaction(transactionType);
 
+                if ((t.getTransactionType().equals(Constants.CREDITSALES) || t.getTransactionType().equals(Constants.CREDITPURCHASE))
+                        && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
+                    if (t.getQuantity() <= 0) {
+                        toast("Item " + t.getItemName() + " must have quantity");
+                        save = false;
+                        return;
+                    }
+                }
+
+                save = true;
 
                 //Update Postings for Days Credit Sales
                 Map<String, Object> data = new HashMap<>();
@@ -427,26 +456,34 @@ public class CreditSales extends AppCompatActivity {
                 DocumentReference updateDaySummary = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
                 batch.set(updateDaySummary, data, SetOptions.merge());
 
-                if (t.getTransactionType().equals(Constants.CREDITSALES) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
-                    DocumentReference updateInventory = null;
-                    Map<String, Object> inv = new HashMap<>();
-                    inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * sig));
-                    if (itemsList.get(i).getRawMaterial() != null) {
-                        updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
-                    } else {
-                        updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
-                    }
-                    batch.set(updateInventory, inv, SetOptions.merge());
-                } else if (t.getTransactionType().equals(Constants.CREDITPURCHASE) && itemsList.get(i).getIsInventory()!= null || (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
-                    Map<String, Object> inv = new HashMap<>();
-                    inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * sig));
-                    DocumentReference updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
-                    batch.set(updateInventory, inv, SetOptions.merge());
+                updateInventory(t, i, sig);
 
-                }
 
             }
         }
+
+    }
+
+    private void updateInventory(Transaction t, int i, int sig) {
+        //update Inventory
+        DocumentReference updateInventory = null;
+        Map<String, Object> inv = new HashMap<>();
+        inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * sig));
+
+        if (t.getTransactionType().equals(Constants.CREDITSALES) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
+            if (itemsList.get(i).getRawMaterial() != null) {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
+            } else {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
+            }
+        } else if (t.getTransactionType().equals(Constants.CREDITPURCHASE) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
+            if (itemsList.get(i).getRawMaterial() != null) {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
+            } else {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
+            }
+        }
+        if (updateInventory != null) batch.set(updateInventory, inv, SetOptions.merge());
 
     }
 
@@ -535,8 +572,8 @@ public class CreditSales extends AppCompatActivity {
                         String text;
                         if (transactionType.equals(Constants.CREDITSALES)) {
                             if (out > in)
-                                text = "Advance " + Math.abs(out - in);
-                            else text = "Due " + Math.abs(in - out);
+                                text = "Advance " + String.format("%.2f", Math.abs(out - in));
+                            else text = "Due " + String.format("%.2f", Math.abs(in - out));
 
                         } else if (transactionType.equals(Constants.CREDITPURCHASE)) {
                             if (out > in)
@@ -550,8 +587,8 @@ public class CreditSales extends AppCompatActivity {
                         tvSummary.setText(text);
                         new AlertDialog.Builder(view.getContext())
                                 .setTitle("Summary ")
-                                .setMessage(transactionType + " Rs : " + document.get(transactionType) + "\n" +
-                                        transactionTypeReverse + " Rs : " + document.get(transactionTypeReverse) + "\n" +
+                                .setMessage(transactionType + " Rs : " + String.format("%.2f", in) + "\n" +
+                                        transactionTypeReverse + " Rs : " + String.format("%.2f", out) + "\n" +
                                         text)
                                 .setNegativeButton(android.R.string.no, null)
                                 .setIcon(R.drawable.ic_timeline_black_24dp)
@@ -631,6 +668,7 @@ public class CreditSales extends AppCompatActivity {
                 resetFreeTextView();
                 setDate();
                 updateSummary();
+                save = false;
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -651,7 +689,7 @@ public class CreditSales extends AppCompatActivity {
     }
 
     public boolean isFreeItemAvailable() {
-        return UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0;
+        return UHelper.parseDouble(etAmount.getText().toString()) > 0 && itemName.getText().toString().length() > 0 && accountSpinner.getSelectedItem().toString() != null;
     }
 
     @Override

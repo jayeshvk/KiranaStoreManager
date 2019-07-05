@@ -51,14 +51,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="10dp">
+        android:padding="5dp">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Is Product Of"
-            android:textSize="16sp" />
+            android:text="Raw Material"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <Spinner
             android:id="@+id/itemSpinner"
@@ -97,9 +98,10 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="10dp"
+        android:padding="5dp"
         android:text="Relevancy"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -175,8 +177,18 @@
             android:id="@+id/stock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ems="10"
+            android:ems="6"
+            android:enabled="false"
             android:inputType="numberDecimal"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/editStock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit"
+            android:theme="@style/MyButton"
+            style="@style/Widget.AppCompat.Button.Borderless"
             android:visibility="gone" />
     </LinearLayout>
 
@@ -189,6 +201,7 @@
 
         <Button
             android:id="@+id/save"
+            style="@style/MyButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Save" />

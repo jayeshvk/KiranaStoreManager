@@ -18,6 +18,27 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delivery Date"
+            android:textSize="16sp"
+            android:paddingEnd="5dp"/>
+
+        <TextView
+            android:id="@+id/deliveryDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="15dp">
 
@@ -144,7 +165,8 @@
         android:enabled="false"
         android:hint="Notes"
         android:inputType="textPersonName"
-        android:padding="15dp" />
+        android:padding="15dp"
+        android:textColor="@drawable/edit_text_selector" />
 
     <LinearLayout
         android:layout_width="match_parent"

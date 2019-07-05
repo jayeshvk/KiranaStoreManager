@@ -34,7 +34,7 @@
                 android:hint="DD-MM-YYYY"
                 android:inputType="date"
                 android:onClick="datePicker"
-                android:textColor="#304FFE"
+                android:textColor="@color/colorAccent"
                 android:textStyle="bold" />
 
             <ImageView

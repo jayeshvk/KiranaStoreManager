@@ -60,7 +60,7 @@ public class DateReportRecyclerViewAdapter extends RecyclerView.Adapter<DateRepo
 
         if (transaction.getNotes() != null) {
             if (transaction.getNotes().trim().length() > 0)
-                holder.itemName.setTextColor(Color.BLUE);
+                holder.itemName.setTextColor(Color.parseColor("#303F9F"));
             else
                 holder.itemName.setTextColor(Color.BLACK);
         }

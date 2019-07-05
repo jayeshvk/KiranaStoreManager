@@ -1,7 +1,10 @@
 package com.appdev.jayesh.kiranastoremanager;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -208,8 +211,17 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case "About":
                 mDrawerLayout.closeDrawer(Gravity.START);
+                String versionName = "";
+                int versionCode = -1;
+                try {
+                    PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                    versionName = packageInfo.versionName;
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage("Please Contact jayeshvk@gmail.com before using the app and if you want any info on the app or need additional functionality to suit your requirement");
+                builder.setMessage("Please Contact jayeshvk@gmail.com before using the app and if you want any info on the app or need additional functionality to suit your requirement\nVersion " + versionName);
                 builder.create().show();
                 break;
             case "Stock Report":
@@ -217,26 +229,40 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, StockReport.class));
                 break;
             case "Logout":
-                progressDialog.show();
-                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-                String reqString = Build.MANUFACTURER
-                        + " " + Build.MODEL + " " + Build.VERSION.RELEASE
-                        + " " + Build.VERSION_CODES.class.getFields()[android.os.Build.VERSION.SDK_INT].getName();
-                Map<String, Object> data = new HashMap<>();
-                data.put("logOut ", UHelper.setPresentDateyyyyMMddhhmm());
+                AlertDialog.Builder conf = new AlertDialog.Builder(this);
+                conf.setMessage("Are you sure you want to log out?")
+                        .setCancelable(false)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                progressDialog.show();
+                                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                                String reqString = Build.MANUFACTURER
+                                        + " " + Build.MODEL + " " + Build.VERSION.RELEASE
+                                        + " " + Build.VERSION_CODES.class.getFields()[android.os.Build.VERSION.SDK_INT].getName();
+                                Map<String, Object> data = new HashMap<>();
+                                data.put("logOut ", UHelper.setPresentDateyyyyMMddhhmm());
 
-                FirebaseFirestore.getInstance().collection("users").document(currentUser.getUid()).
-                        collection("Access").document(reqString).set(data, SetOptions.merge());
-                AuthUI.getInstance()
-                        .signOut(this)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            public void onComplete(@NonNull Task<Void> task) {
-                                progressDialog.cancel();
-                                if (task.isSuccessful()) {
-                                    startActivity(new Intent(MainActivity.this, SignIn.class));
-                                } else toast("Sign out failed, please try again");
+                                FirebaseFirestore.getInstance().collection("users").document(currentUser.getUid()).
+                                        collection("Access").document(reqString).set(data, SetOptions.merge());
+                                AuthUI.getInstance()
+                                        .signOut(MainActivity.this)
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                progressDialog.cancel();
+                                                if (task.isSuccessful()) {
+                                                    startActivity(new Intent(MainActivity.this, SignIn.class));
+                                                } else toast("Sign out failed, please try again");
+                                            }
+                                        });
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                //  Action for 'NO' Button
+                                dialog.cancel();
                             }
                         });
+                conf.create().show();
                 break;
         }
     }

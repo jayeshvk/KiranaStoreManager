@@ -80,6 +80,8 @@ public class CashSales extends AppCompatActivity {
     WriteBatch batch;
     List<Items> itemsList = new ArrayList<>();
 
+    boolean save;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -256,15 +258,18 @@ public class CashSales extends AppCompatActivity {
         batch = firebaseFirestore.batch();
         saveListItems();
         saveFreeItems();
-        batchWrite();
+        if (save)
+            batchWrite();
     }
 
     private void saveListItems() {
-        if (adapter.total <= 0)
+        if (adapter.total <= 0) {
             return;
+        }
 
         for (int i = 0; i < adapter.transactionList.size(); i++) {
             Transaction t = adapter.transactionList.get(i);
+
             if (t.getAmount() > 0) {
                 DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
                 double temp = t.getAmount() * sign;
@@ -277,6 +282,17 @@ public class CashSales extends AppCompatActivity {
                 t.setId(newDocument.getId());
                 t.setAccountId(transactionType);
                 t.setTransaction(transactionType);
+
+                if ((t.getTransactionType().equals(Constants.CASHSALES) || t.getTransactionType().equals(Constants.CASHPURCHASE))
+                        && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
+                    if (t.getQuantity() <= 0) {
+                        toast("Item " + t.getItemName() + " must have quantity");
+                        save = false;
+                        return;
+                    }
+                }
+
+                save = true;
                 //Update Postings for Days Sales
                 Map<String, Object> data = new HashMap<>();
                 data.put(transactionType, FieldValue.increment(t.getAmount()));
@@ -287,26 +303,34 @@ public class CashSales extends AppCompatActivity {
                 batch.set(daySales, data, SetOptions.merge());
                 batch.set(newDocument, t);
 
-                if (t.getTransactionType().equals(Constants.CASHPURCHASE) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
-                    DocumentReference updateInventory = null;
-                    Map<String, Object> inv = new HashMap<>();
-                    inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * 1));
-                    if (itemsList.get(i).getRawMaterial() != null) {
-                        updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
-                    } else {
-                        updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
-                    }
-                    batch.set(updateInventory, inv, SetOptions.merge());
-                } else if (t.getTransactionType().equals(Constants.CASHSALES) && itemsList.get(i).getIsInventory() != null || (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
-                    Map<String, Object> inv = new HashMap<>();
-                    inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * -1));
-                    DocumentReference updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
-                    batch.set(updateInventory, inv, SetOptions.merge());
-
-                }
-
+                updateInventory(t, i, sign);
             }
         }
+    }
+
+    private void updateInventory(Transaction t, int i, int sig) {
+        //update Inventory
+        DocumentReference updateInventory = null;
+        Map<String, Object> inv = new HashMap<>();
+        //thi si because in cash purchase amount is negative
+        sig = sig * -1;
+        inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * sig));
+
+        if (t.getTransactionType().equals(Constants.CASHSALES) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
+            if (itemsList.get(i).getRawMaterial() != null) {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
+            } else {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
+            }
+        } else if (t.getTransactionType().equals(Constants.CASHPURCHASE) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
+            if (itemsList.get(i).getRawMaterial() != null) {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
+            } else {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
+            }
+        }
+        if (updateInventory != null) batch.set(updateInventory, inv, SetOptions.merge());
+
     }
 
     private void saveFreeItems() {
@@ -337,6 +361,8 @@ public class CashSales extends AppCompatActivity {
             data.put("timeInMilli", UHelper.ddmmyyyyhmsTomili(datetime));
             batch.set(newDocument, t);
             batch.set(accountEntry, data, SetOptions.merge());
+
+            save = true;
         }
     }
 
@@ -431,6 +457,7 @@ public class CashSales extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
                 resetFreeTextView();
                 setDate();
+                save = false;
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override

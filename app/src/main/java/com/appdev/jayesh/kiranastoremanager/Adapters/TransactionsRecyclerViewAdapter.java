@@ -121,7 +121,7 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
                             String text = input.getText().toString();
                             transactionList.get(getAdapterPosition()).setNotes(text);
                             if (text.trim().length() > 0) {
-                                note.setColorFilter(Color.GREEN);
+                                note.setColorFilter(Color.parseColor("#303F9F"));
                             } else
                                 note.setColorFilter(Color.BLACK);
 
@@ -129,6 +129,7 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
                     });
                     alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
+                            dialog.cancel();
                         }
                     });
                     alert.show();
@@ -201,6 +202,7 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
         holder.amount.setText("");
         holder.uom.setText("");
         holder.note.setColorFilter(Color.BLACK);
+        transaction.setNotes("");
 
     }
 

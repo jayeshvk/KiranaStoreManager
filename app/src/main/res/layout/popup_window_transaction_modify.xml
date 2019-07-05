@@ -90,7 +90,8 @@
         android:enabled="false"
         android:hint="Notes"
         android:inputType="textPersonName"
-        android:padding="15dp" />
+        android:padding="15dp"
+        android:textColor="@drawable/edit_text_selector" />
 
     <LinearLayout
         android:layout_width="match_parent"

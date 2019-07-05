@@ -6,4 +6,6 @@
     <color name="Black">#000000</color>
     <color name="White">#FFF</color>
     <color name="Sky">#c4e1f2</color>
+    <color name="enabled_color">@color/design_default_color_primary_dark</color>
+    <color name="disabled_color">#000</color>
 </resources>
