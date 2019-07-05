@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/date"
+        style="@style/DateReportItem"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="start"
+        android:text="Date" />
+
+    <TextView
+        android:id="@+id/itemName"
+        style="@style/DateReportItem"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="start"
+        android:text="Item" />
+
+    <TextView
+        android:id="@+id/quantity"
+        style="@style/DateReportItem"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.75"
+        android:text="Qty" />
+
+    <TextView
+        android:id="@+id/uom"
+        style="@style/DateReportItem"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.75"
+        android:hint="UOM" />
+
+    <TextView
+        android:id="@+id/price"
+        style="@style/DateReportItem"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.75"
+        android:text="Price" />
+
+    <TextView
+        android:id="@+id/amount"
+        style="@style/DateReportItem"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Amount" />
+
+</LinearLayout>
