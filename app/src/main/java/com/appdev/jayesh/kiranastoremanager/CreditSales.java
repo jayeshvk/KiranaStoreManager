@@ -34,6 +34,7 @@ import android.widget.Toast;
 import com.appdev.jayesh.kiranastoremanager.Adapters.TransactionsRecyclerViewAdapter;
 import com.appdev.jayesh.kiranastoremanager.Model.Accounts;
 import com.appdev.jayesh.kiranastoremanager.Model.Items;
+import com.appdev.jayesh.kiranastoremanager.Model.MinTransaction;
 import com.appdev.jayesh.kiranastoremanager.Model.Transaction;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -97,7 +98,6 @@ public class CreditSales extends AppCompatActivity {
 
     TextView tvSummary;
 
-    List<Items> itemsList = new ArrayList<>();
 
     //tp stop batch write when stock relevant item does not have quantity
     boolean save;
@@ -161,10 +161,13 @@ public class CreditSales extends AppCompatActivity {
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
                     Items item = q.toObject(Items.class);
-                    itemsList.add(item);
                     Transaction transaction = new Transaction();
                     transaction.setItemName(item.getName());
-                    transaction.setItemId(item.getId());
+                    transaction.setItemId(q.getId());
+                    transaction.setInventory(item.getIsInventory());
+                    transaction.setBatchItem(item.getIsBatchItem());
+                    transaction.setProcessed(item.getIsProcessed());
+                    transaction.setRawMaterial(item.getRawMaterial());
                     transactionList.add(transaction);
                 }
                 showProgressBar(false);
@@ -329,7 +332,7 @@ public class CreditSales extends AppCompatActivity {
         // initiateAccountingEntries();
         saveFreeItems(sign);
         saveListItems(sign);
-        if (save)
+/*        if (save)*/
             batchWrite();
     }
 
@@ -363,6 +366,8 @@ public class CreditSales extends AppCompatActivity {
     private void saveFreeItems(int sig) {
         if (isFreeItemAvailable()) {
             Transaction t = new Transaction();
+            MinTransaction mt = new MinTransaction();
+
             DocumentReference freeItemDocument = documentReference.collection(Constants.TRANSACTIONS).document();
             String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
 
@@ -383,6 +388,21 @@ public class CreditSales extends AppCompatActivity {
             t.setAccountId(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
             t.setTransaction(transactionType);
             t.setUom(etUom.getText().toString());
+
+            mt.setAccountId(t.getAccountId());
+            mt.setAccountName(t.getAccountName());
+            mt.setAmount(t.getAmount());
+            mt.setId(t.getId());
+            mt.setItemId(t.getItemId());
+            mt.setItemName(t.getItemName());
+            mt.setNotes(t.getNotes());
+            mt.setPrice(t.getPrice());
+            mt.setQuantity(t.getQuantity());
+            mt.setTimeInMilli(t.getTimeInMilli());
+            mt.setTimestamp(t.getTimestamp());
+            mt.setTransaction(t.getTransaction());
+            mt.setTransactionType(t.getTransactionType());
+            mt.setUom(t.getUom());
 
             //Update Postings for Days Credit Sales
             final Map<String, Object> data = new HashMap<>();
@@ -409,6 +429,7 @@ public class CreditSales extends AppCompatActivity {
 
         for (int i = 0; i < adapter.transactionList.size(); i++) {
             Transaction t = adapter.transactionList.get(i);
+            MinTransaction mt = new MinTransaction();
 
 
             if (sig != sign)
@@ -429,8 +450,8 @@ public class CreditSales extends AppCompatActivity {
                 t.setAccountId(accountsList.get(accountSpinner.getSelectedItemPosition()).getId());
                 t.setTransaction(transactionType);
 
-                if ((t.getTransactionType().equals(Constants.CREDITSALES) || t.getTransactionType().equals(Constants.CREDITPURCHASE))
-                        && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
+/*                if ((t.getTransactionType().equals(Constants.CREDITSALES))
+                        && (t.getInventory() || t.getRawMaterial() != null)) {
                     if (t.getQuantity() <= 0) {
                         toast("Item " + t.getItemName() + " must have quantity");
                         save = false;
@@ -438,6 +459,29 @@ public class CreditSales extends AppCompatActivity {
                     }
                 }
 
+                if ((t.getTransactionType().equals(Constants.CREDITPURCHASE))
+                        && (t.getInventory())) {
+                    if (t.getQuantity() <= 0) {
+                        toast("Item " + t.getItemName() + " must have quantity");
+                        save = false;
+                        return;
+                    }
+                }*/
+
+                mt.setAccountId(t.getAccountId());
+                mt.setAccountName(t.getAccountName());
+                mt.setAmount(t.getAmount());
+                mt.setId(t.getId());
+                mt.setItemId(t.getItemId());
+                mt.setItemName(t.getItemName());
+                mt.setNotes(t.getNotes());
+                mt.setPrice(t.getPrice());
+                mt.setQuantity(t.getQuantity());
+                mt.setTimeInMilli(t.getTimeInMilli());
+                mt.setTimestamp(t.getTimestamp());
+                mt.setTransaction(t.getTransaction());
+                mt.setTransactionType(t.getTransactionType());
+                mt.setUom(t.getUom());
                 save = true;
 
                 //Update Postings for Days Credit Sales
@@ -470,18 +514,20 @@ public class CreditSales extends AppCompatActivity {
         Map<String, Object> inv = new HashMap<>();
         inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * sig));
 
-        if (t.getTransactionType().equals(Constants.CREDITSALES) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
-            if (itemsList.get(i).getRawMaterial() != null) {
-                updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
+        if (t.getTransactionType().equals(Constants.CREDITSALES) && (t.getInventory() || t.getRawMaterial() != null)) {
+            if (t.getRawMaterial() != null) {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(t.getRawMaterial());
             } else {
                 updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
             }
-        } else if (t.getTransactionType().equals(Constants.CREDITPURCHASE) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
-            if (itemsList.get(i).getRawMaterial() != null) {
-                updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
+        } else if (t.getTransactionType().equals(Constants.CREDITPURCHASE) && (t.getInventory())) {
+            updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
+
+ /*           if (t.getRawMaterial() != null) {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(t.getRawMaterial());
             } else {
                 updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
-            }
+            }*/
         }
         if (updateInventory != null) batch.set(updateInventory, inv, SetOptions.merge());
 

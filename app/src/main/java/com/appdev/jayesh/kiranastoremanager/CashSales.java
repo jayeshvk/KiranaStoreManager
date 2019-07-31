@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,6 +30,7 @@ import android.widget.Toast;
 
 import com.appdev.jayesh.kiranastoremanager.Adapters.TransactionsRecyclerViewAdapter;
 import com.appdev.jayesh.kiranastoremanager.Model.Items;
+import com.appdev.jayesh.kiranastoremanager.Model.MinTransaction;
 import com.appdev.jayesh.kiranastoremanager.Model.Transaction;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -42,6 +45,13 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.WriteBatch;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -78,7 +88,6 @@ public class CashSales extends AppCompatActivity {
     int sign;
 
     WriteBatch batch;
-    List<Items> itemsList = new ArrayList<>();
 
     boolean save;
 
@@ -118,6 +127,7 @@ public class CashSales extends AppCompatActivity {
         etNote = findViewById(R.id.note);
         etUOM = findViewById(R.id.uom);
 
+        writeLogCat();
         setDate();
         loadItemData();
         setListeners();
@@ -140,8 +150,11 @@ public class CashSales extends AppCompatActivity {
                     Transaction transaction = new Transaction();
                     transaction.setItemName(item.getName());
                     transaction.setItemId(q.getId());
+                    transaction.setInventory(item.getIsInventory());
+                    transaction.setBatchItem(item.getIsBatchItem());
+                    transaction.setProcessed(item.getIsProcessed());
+                    transaction.setRawMaterial(item.getRawMaterial());
                     transactionList.add(transaction);
-                    itemsList.add(item);
 
                 }
                 showProgressBar(false);
@@ -256,9 +269,12 @@ public class CashSales extends AppCompatActivity {
 
     public void save(View view) {
         batch = firebaseFirestore.batch();
+        Log.d("jayesh", "inside Save");
         saveListItems();
         saveFreeItems();
-        if (save)
+        Log.d("jayesh", "after save list items" + save);
+
+       /* if (save)*/
             batchWrite();
     }
 
@@ -269,6 +285,7 @@ public class CashSales extends AppCompatActivity {
 
         for (int i = 0; i < adapter.transactionList.size(); i++) {
             Transaction t = adapter.transactionList.get(i);
+            MinTransaction mt = new MinTransaction();
 
             if (t.getAmount() > 0) {
                 DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
@@ -283,14 +300,37 @@ public class CashSales extends AppCompatActivity {
                 t.setAccountId(transactionType);
                 t.setTransaction(transactionType);
 
-                if ((t.getTransactionType().equals(Constants.CASHSALES) || t.getTransactionType().equals(Constants.CASHPURCHASE))
-                        && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
+/*                if ((t.getTransactionType().equals(Constants.CASHSALES))
+                        && (t.getInventory() || t.getRawMaterial() != null)) {
                     if (t.getQuantity() <= 0) {
                         toast("Item " + t.getItemName() + " must have quantity");
                         save = false;
                         return;
                     }
                 }
+                if ((t.getTransactionType().equals(Constants.CASHPURCHASE))
+                        && (t.getInventory())) {
+                    if (t.getQuantity() <= 0) {
+                        toast("Item " + t.getItemName() + " must have quantity");
+                        save = false;
+                        return;
+                    }
+                }*/
+
+                mt.setAccountId(t.getAccountId());
+                mt.setAccountName(t.getAccountName());
+                mt.setAmount(t.getAmount());
+                mt.setId(t.getId());
+                mt.setItemId(t.getItemId());
+                mt.setItemName(t.getItemName());
+                mt.setNotes(t.getNotes());
+                mt.setPrice(t.getPrice());
+                mt.setQuantity(t.getQuantity());
+                mt.setTimeInMilli(t.getTimeInMilli());
+                mt.setTimestamp(t.getTimestamp());
+                mt.setTransaction(t.getTransaction());
+                mt.setTransactionType(t.getTransactionType());
+                mt.setUom(t.getUom());
 
                 save = true;
                 //Update Postings for Days Sales
@@ -301,9 +341,10 @@ public class CashSales extends AppCompatActivity {
                 DocumentReference daySales = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
 
                 batch.set(daySales, data, SetOptions.merge());
-                batch.set(newDocument, t);
+                batch.set(newDocument, mt);
 
                 updateInventory(t, i, sign);
+                adapter.transactionList.get(i).setQuantity(0);
             }
         }
     }
@@ -316,18 +357,19 @@ public class CashSales extends AppCompatActivity {
         sig = sig * -1;
         inv.put(Constants.RAWSTOCK, FieldValue.increment(t.getQuantity() * sig));
 
-        if (t.getTransactionType().equals(Constants.CASHSALES) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
-            if (itemsList.get(i).getRawMaterial() != null) {
-                updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
+        if (t.getTransactionType().equals(Constants.CASHSALES) && (t.getInventory() || t.getRawMaterial() != null)) {
+            if (t.getRawMaterial() != null) {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(t.getRawMaterial());
             } else {
                 updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
             }
-        } else if (t.getTransactionType().equals(Constants.CASHPURCHASE) && (itemsList.get(i).getIsInventory() || itemsList.get(i).getRawMaterial() != null)) {
-            if (itemsList.get(i).getRawMaterial() != null) {
-                updateInventory = documentReference.collection(Constants.ITEMS).document(itemsList.get(i).getRawMaterial());
+        } else if (t.getTransactionType().equals(Constants.CASHPURCHASE) && (t.getInventory())) {
+            updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
+/*            if (t.getRawMaterial() != null) {
+                updateInventory = documentReference.collection(Constants.ITEMS).document(t.getRawMaterial());
             } else {
                 updateInventory = documentReference.collection(Constants.ITEMS).document(t.getItemId());
-            }
+            }*/
         }
         if (updateInventory != null) batch.set(updateInventory, inv, SetOptions.merge());
 
@@ -337,6 +379,7 @@ public class CashSales extends AppCompatActivity {
 
         if (isFreeItemAvailable()) {
             Transaction t = new Transaction();
+            MinTransaction mt = new MinTransaction();
             DocumentReference newDocument = documentReference.collection(Constants.TRANSACTIONS).document();
             String datetime = dt.getText().toString() + " " + UHelper.getTime("time");
             t.setItemName(itemName.getText().toString());
@@ -354,12 +397,27 @@ public class CashSales extends AppCompatActivity {
             t.setTransaction(transactionType);
             t.setUom(etUOM.getText().toString());
 
+            mt.setAccountId(t.getAccountId());
+            mt.setAccountName(t.getAccountName());
+            mt.setAmount(t.getAmount());
+            mt.setId(t.getId());
+            mt.setItemId(t.getItemId());
+            mt.setItemName(t.getItemName());
+            mt.setNotes(t.getNotes());
+            mt.setPrice(t.getPrice());
+            mt.setQuantity(t.getQuantity());
+            mt.setTimeInMilli(t.getTimeInMilli());
+            mt.setTimestamp(t.getTimestamp());
+            mt.setTransaction(t.getTransaction());
+            mt.setTransactionType(t.getTransactionType());
+            mt.setUom(t.getUom());
+
             final DocumentReference accountEntry = documentReference.collection(Constants.POSTINGS).document(dt.getText().toString());
             final Map<String, Object> data = new HashMap<>();
             data.put(transactionType, FieldValue.increment(t.getAmount()));
             data.put(Constants.TIMESTAMP, FieldValue.serverTimestamp());
             data.put("timeInMilli", UHelper.ddmmyyyyhmsTomili(datetime));
-            batch.set(newDocument, t);
+            batch.set(newDocument, mt);
             batch.set(accountEntry, data, SetOptions.merge());
 
             save = true;
@@ -500,6 +558,46 @@ public class CashSales extends AppCompatActivity {
             }
         });
         return true;
+    }
+
+    protected void writeLogCat() {
+        try {
+            Process process = Runtime.getRuntime().exec("logcat -d");
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            ;
+            StringBuilder log = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                log.append(line);
+                log.append("\n");
+            }
+
+            //Convert log to string
+            final String logString = new String(log.toString());
+
+            //Create txt file in SD Card
+            File sdCard = Environment.getExternalStorageDirectory();
+            File dir = new File(sdCard.getAbsolutePath() + File.separator + "Log File");
+
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            File file = new File(dir, "logcat.txt");
+
+            //To write logcat in text file
+            FileOutputStream fout = new FileOutputStream(file);
+            OutputStreamWriter osw = new OutputStreamWriter(fout);
+
+            //Writing the string to file
+            osw.write(logString);
+            osw.flush();
+            osw.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

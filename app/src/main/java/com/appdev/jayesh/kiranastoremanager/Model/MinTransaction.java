@@ -1,6 +1,6 @@
 package com.appdev.jayesh.kiranastoremanager.Model;
 
-public class Transaction implements Comparable<Transaction> {
+public class MinTransaction {
 
     private String accountName;
 
@@ -23,42 +23,11 @@ public class Transaction implements Comparable<Transaction> {
     private String notes;
     private String Id;
     private long timestamp;
-    private Boolean isInventory;
-    private Boolean isProcessed;
-    private Boolean isBatchItem;
+    private String uom;
+    private String transaction;
 
-    public String getRawMaterial() {
-        return rawMaterial;
-    }
 
-    public void setRawMaterial(String rawMaterial) {
-        this.rawMaterial = rawMaterial;
-    }
-
-    private String rawMaterial;
-
-    public Boolean getInventory() {
-        return isInventory;
-    }
-
-    public void setInventory(Boolean inventory) {
-        isInventory = inventory;
-    }
-
-    public Boolean getProcessed() {
-        return isProcessed;
-    }
-
-    public void setProcessed(Boolean processed) {
-        isProcessed = processed;
-    }
-
-    public Boolean getBatchItem() {
-        return isBatchItem;
-    }
-
-    public void setBatchItem(Boolean batchItem) {
-        isBatchItem = batchItem;
+    public MinTransaction() {
     }
 
     public String getUom() {
@@ -69,8 +38,6 @@ public class Transaction implements Comparable<Transaction> {
         this.uom = uom;
     }
 
-    private String uom;
-
     public String getTransaction() {
         return transaction;
     }
@@ -78,8 +45,6 @@ public class Transaction implements Comparable<Transaction> {
     public void setTransaction(String transaction) {
         this.transaction = transaction;
     }
-
-    private String transaction;
 
     public long getTimestamp() {
         return timestamp;
@@ -103,9 +68,6 @@ public class Transaction implements Comparable<Transaction> {
 
     public void setId(String id) {
         Id = id;
-    }
-
-    public Transaction() {
     }
 
     public String getAccountName() {
@@ -172,10 +134,5 @@ public class Transaction implements Comparable<Transaction> {
         this.notes = notes;
     }
 
-    @Override
-    public int compareTo(Transaction o) {
-        return Long.compare(timeInMilli, o.timeInMilli);
-
-    }
 
 }

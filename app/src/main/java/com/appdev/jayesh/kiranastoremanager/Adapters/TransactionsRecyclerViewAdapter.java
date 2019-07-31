@@ -81,6 +81,7 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
                     amount.setText(String.format("%.2f", (qty * prc)));
                 }
 
+
                 @Override
                 public void afterTextChanged(Editable s) {
 
@@ -201,6 +202,26 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
         holder.price.setText("");
         holder.amount.setText("");
         holder.uom.setText("");
+        System.out.println("Position" + position);
+
+
+/*        if (transaction.getQuantity() > 0)
+            holder.quantity.setText(transaction.getQuantity() + "");
+        else
+            holder.quantity.setText("");
+        if (transaction.getPrice() > 0)
+            holder.price.setText(transaction.getPrice() + "");
+        else
+            holder.price.setText("");
+        if (transaction.getAmount() > 0)
+            holder.amount.setText(transaction.getAmount() + "");
+        else
+            holder.amount.setText("");
+        if (transaction.getUom() == null)
+            holder.uom.setText("");
+        else
+            holder.uom.setText(transaction.getUom() + "");*/
+
         holder.note.setColorFilter(Color.BLACK);
         transaction.setNotes("");
 
