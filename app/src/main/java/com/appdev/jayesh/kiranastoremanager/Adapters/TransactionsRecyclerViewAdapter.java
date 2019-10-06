@@ -197,12 +197,13 @@ public class TransactionsRecyclerViewAdapter extends RecyclerView.Adapter<Transa
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         Transaction transaction = transactionList.get(position);
+        String price = transaction.getPrice() + "";
         holder.itemName.setText(transaction.getItemName());
         holder.quantity.setText("");
-        holder.price.setText("");
+        holder.price.setText(price);
         holder.amount.setText("");
         holder.uom.setText("");
-        System.out.println("Position" + position);
+        //System.out.println("Position" + position);
 
 
 /*        if (transaction.getQuantity() > 0)

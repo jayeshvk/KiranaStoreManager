@@ -164,6 +164,7 @@ public class CreditSales extends AppCompatActivity {
                     Transaction transaction = new Transaction();
                     transaction.setItemName(item.getName());
                     transaction.setItemId(q.getId());
+                    transaction.setPrice(item.getPrice());
                     transaction.setInventory(item.getIsInventory());
                     transaction.setBatchItem(item.getIsBatchItem());
                     transaction.setProcessed(item.getIsProcessed());
@@ -332,8 +333,8 @@ public class CreditSales extends AppCompatActivity {
         // initiateAccountingEntries();
         saveFreeItems(sign);
         saveListItems(sign);
-/*        if (save)*/
-            batchWrite();
+        /*        if (save)*/
+        batchWrite();
     }
 
     public void savePaymentsButton(View view) {

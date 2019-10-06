@@ -150,6 +150,7 @@ public class CashSales extends AppCompatActivity {
                     Transaction transaction = new Transaction();
                     transaction.setItemName(item.getName());
                     transaction.setItemId(q.getId());
+                    transaction.setPrice(item.getPrice());
                     transaction.setInventory(item.getIsInventory());
                     transaction.setBatchItem(item.getIsBatchItem());
                     transaction.setProcessed(item.getIsProcessed());
@@ -274,8 +275,8 @@ public class CashSales extends AppCompatActivity {
         saveFreeItems();
         Log.d("jayesh", "after save list items" + save);
 
-       /* if (save)*/
-            batchWrite();
+        /* if (save)*/
+        batchWrite();
     }
 
     private void saveListItems() {

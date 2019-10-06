@@ -138,6 +138,7 @@ public class SalesOrderActivity extends AppCompatActivity {
                     SalesOrder salesOrder = new SalesOrder();
                     salesOrder.setItemName(item.getName());
                     salesOrder.setItemId(item.getId());
+                    salesOrder.setPrice(item.getPrice());
                     salesOrderList.add(salesOrder);
                 }
                 showProgressBar(false);

@@ -28,6 +28,12 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:text="Per Unit Price" />
+
         <EditText
             android:id="@+id/itemPrice"
             android:layout_width="0dp"
@@ -36,6 +42,12 @@
             android:ems="10"
             android:hint="Enter Price"
             android:inputType="numberDecimal" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:text="Per Unit Cost" />
 
         <EditText
             android:id="@+id/itemCost"

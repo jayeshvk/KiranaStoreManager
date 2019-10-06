@@ -187,9 +187,10 @@ public class SalesOrderRecyclerViewAdapter extends RecyclerView.Adapter<SalesOrd
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         SalesOrder transaction = salesOrderList.get(position);
         transaction.setNotes(null);
+        String price = transaction.getPrice() + "";
         holder.itemName.setText(transaction.getItemName());
         holder.quantity.setText("");
-        holder.price.setText("");
+        holder.price.setText(price);
         holder.amount.setText("");
         holder.uom.setText("");
         holder.note.setColorFilter(Color.BLACK);

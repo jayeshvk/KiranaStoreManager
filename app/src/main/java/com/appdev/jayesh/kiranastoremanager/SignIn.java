@@ -1,5 +1,5 @@
 package com.appdev.jayesh.kiranastoremanager;
-
+//21/09/2019
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Build;
@@ -80,6 +80,9 @@ public class SignIn extends AppCompatActivity {
         if (requestCode == RC_SIGN_IN) {
             IdpResponse response = IdpResponse.fromResultIntent(data);
             if (response != null) {
+                if (response.isNewUser())
+                    Toast.makeText(getApplicationContext(), "Account does not exist, Please sign up" + response.getError(), Toast.LENGTH_LONG).show();
+
                 if (resultCode == RESULT_OK) {
                     // Successfully signed in
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
