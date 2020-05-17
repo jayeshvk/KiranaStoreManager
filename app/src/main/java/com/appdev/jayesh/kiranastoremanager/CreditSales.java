@@ -46,7 +46,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -81,9 +80,7 @@ public class CreditSales extends AppCompatActivity {
     DocumentReference documentReference;
 
     List<Accounts> accountsList = new ArrayList<Accounts>();
-
     ArrayAdapter<Accounts> accountsArrayAdapter;
-
     Spinner accountSpinner;
 
     String title, transactionType, account, transactionTypeReverse;
@@ -102,6 +99,9 @@ public class CreditSales extends AppCompatActivity {
     //tp stop batch write when stock relevant item does not have quantity
     boolean save;
 
+    List<Accounts> accountList = new ArrayList<Accounts>();
+    List<Items> itemsList = new ArrayList<Items>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,6 +114,9 @@ public class CreditSales extends AppCompatActivity {
         transactionTypeReverse = intent.getStringExtra(Constants.TRANSACTIONTYPEREVERSE);
         sign = intent.getIntExtra(Constants.SIGN, 1);
         this.setTitle(title);
+        itemsList = (List<Items>) intent.getSerializableExtra("itemlist");
+        accountList = (List<Accounts>) intent.getSerializableExtra("accountlist");
+
 
         dt = findViewById(R.id.date);
 
@@ -139,8 +142,8 @@ public class CreditSales extends AppCompatActivity {
         tvSummary = findViewById(R.id.tvSummary);
 
         setDate();
-        loadAccountData();
         loadItemData();
+        loadAccountData();
         setListeners();
 
     }
@@ -154,7 +157,19 @@ public class CreditSales extends AppCompatActivity {
     }
 
     private void loadItemData() {
-        showProgressBar(true);
+
+        for (Items item : itemsList) {
+            Transaction transaction = new Transaction();
+            transaction.setItemName(item.getName());
+            transaction.setItemId(item.getId());
+            transaction.setPrice(item.getPrice());
+            transaction.setInventory(item.getIsInventory());
+            transaction.setBatchItem(item.getIsBatchItem());
+            transaction.setProcessed(item.getIsProcessed());
+            transaction.setRawMaterial(item.getRawMaterial());
+            transactionList.add(transaction);
+        }
+        /*showProgressBar(true);
         Query query = firebaseFirestore.collection(Constants.USERS).document(user.getUid()).collection(Constants.ITEMS).whereEqualTo("usedFor." + transactionType, true).orderBy("name", Query.Direction.ASCENDING);
         query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
@@ -180,7 +195,7 @@ public class CreditSales extends AppCompatActivity {
                 showProgressBar(false);
             }
         });
-
+*/
     }
 
     private void loadAccountData() {
@@ -189,7 +204,10 @@ public class CreditSales extends AppCompatActivity {
         accountsArrayAdapter.setDropDownViewResource(R.layout.spinner_item);
         accountSpinner.setAdapter(accountsArrayAdapter);
 
-        showProgressBar(true);
+        accountsList.addAll(accountList);
+        accountsArrayAdapter.notifyDataSetChanged();
+
+        /*showProgressBar(true);
         documentReference.collection(Constants.ACCOUNTS).whereEqualTo(account, true).get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -208,7 +226,7 @@ public class CreditSales extends AppCompatActivity {
 
                     }
                 });
-
+*/
         accountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {

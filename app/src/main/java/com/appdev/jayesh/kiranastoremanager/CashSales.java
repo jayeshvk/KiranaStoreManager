@@ -29,6 +29,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.appdev.jayesh.kiranastoremanager.Adapters.TransactionsRecyclerViewAdapter;
+import com.appdev.jayesh.kiranastoremanager.Model.Accounts;
 import com.appdev.jayesh.kiranastoremanager.Model.Items;
 import com.appdev.jayesh.kiranastoremanager.Model.MinTransaction;
 import com.appdev.jayesh.kiranastoremanager.Model.Transaction;
@@ -39,9 +40,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.WriteBatch;
 
@@ -91,6 +89,9 @@ public class CashSales extends AppCompatActivity {
 
     boolean save;
 
+    List<Accounts> accountList = new ArrayList<Accounts>();
+    List<Items> itemsList = new ArrayList<Items>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,7 +100,9 @@ public class CashSales extends AppCompatActivity {
         title = intent.getStringExtra(Constants.TITLE);
         transactionType = intent.getStringExtra(Constants.TRANSACTIONTYPE);
         sign = intent.getIntExtra(Constants.SIGN, 1);
-        System.out.println(sign);
+        itemsList = (List<Items>) intent.getSerializableExtra("itemlist");
+        accountList = (List<Accounts>) intent.getSerializableExtra("accountlist");
+
         this.setTitle(title);
 
         mAuth = FirebaseAuth.getInstance();
@@ -135,8 +138,21 @@ public class CashSales extends AppCompatActivity {
     }
 
     private void loadItemData() {
+        for (Items item : itemsList) {
+            if (item.getUsedFor().get(transactionType)) {
+                Transaction transaction = new Transaction();
+                transaction.setItemName(item.getName());
+                transaction.setItemId(item.getId());
+                transaction.setPrice(item.getPrice());
+                transaction.setInventory(item.getIsInventory());
+                transaction.setBatchItem(item.getIsBatchItem());
+                transaction.setProcessed(item.getIsProcessed());
+                transaction.setRawMaterial(item.getRawMaterial());
+                transactionList.add(transaction);
+            }
+        }
 
-        firebaseFirestore = FirebaseFirestore.getInstance();
+        /*firebaseFirestore = FirebaseFirestore.getInstance();
         showProgressBar(true);
         Query query = firebaseFirestore.collection(Constants.USERS).document(user.getUid())
                 .collection(Constants.ITEMS).whereEqualTo("usedFor." + transactionType, true)
@@ -167,7 +183,7 @@ public class CashSales extends AppCompatActivity {
                 showProgressBar(false);
             }
         });
-
+*/
     }
 
     private void setListeners() {

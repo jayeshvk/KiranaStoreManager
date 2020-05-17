@@ -2,9 +2,10 @@ package com.appdev.jayesh.kiranastoremanager.Model;
 
 import android.support.annotation.NonNull;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class Items {
+public class Items implements Serializable {
     private String Name;
     private double Price;
     private double Cost;

@@ -17,20 +17,30 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.appdev.jayesh.kiranastoremanager.ExpandableMenu.ExpandableListAdapter;
 import com.appdev.jayesh.kiranastoremanager.ExpandableMenu.ExpandedMenuModel;
+import com.appdev.jayesh.kiranastoremanager.Model.Accounts;
+import com.appdev.jayesh.kiranastoremanager.Model.Items;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,6 +60,18 @@ public class MainActivity extends AppCompatActivity {
     ProgressDialog progressDialog;
 
     FirebaseFirestore db;
+    FirebaseFirestore firebaseFirestore;
+    FirebaseUser user;
+    FirebaseAuth mAuth;
+
+    List<Accounts> accountsList = new ArrayList<Accounts>();
+    ArrayAdapter<Accounts> accountsArrayAdapter;
+    DocumentReference documentReference;
+
+    List<Accounts> accountList = new ArrayList<Accounts>();
+    List<Items> itemsList = new ArrayList<Items>();
+
+    private ProgressDialog pDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +83,12 @@ public class MainActivity extends AppCompatActivity {
         populateExpandableList();
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
+
+        mAuth = FirebaseAuth.getInstance();
+        user = mAuth.getCurrentUser();
+        firebaseFirestore = FirebaseFirestore.getInstance();
+        documentReference = firebaseFirestore.collection(Constants.USERS).document(user.getUid());
+
         db = FirebaseFirestore.getInstance();
 
         TextView userTv = findViewById(R.id.userTv);
@@ -69,6 +97,13 @@ public class MainActivity extends AppCompatActivity {
         else
             startActivity(new Intent(MainActivity.this, SignIn.class));
 
+        pDialog = new ProgressDialog(this);
+        pDialog.setMessage("Please wait...");
+        pDialog.setCancelable(false);
+        pDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+
+        loadItemData();
+        loadAccountData();
     }
 
     //Drawer Navigation Related Code*******************************************
@@ -178,12 +213,12 @@ public class MainActivity extends AppCompatActivity {
         switch (subMenu) {
             case "Items":
                 mDrawerLayout.closeDrawer(Gravity.START);
-                startActivity(new Intent(MainActivity.this, ItemsActivity.class));
+                startActivityForResult(new Intent(MainActivity.this, ItemsActivity.class), 10);
                 break;
             case "Accounts":
                 mDrawerLayout.closeDrawer(Gravity.START);
                 //startActivity(new Intent(MainActivity.this, Reports.class));
-                startActivity(new Intent(MainActivity.this, AccountsActivity.class));
+                startActivityForResult(new Intent(MainActivity.this, AccountsActivity.class), 20);
                 break;
             case "Date Report":
                 mDrawerLayout.closeDrawer(Gravity.START);
@@ -267,6 +302,64 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void loadItemData() {
+        showProgressBar(true, "Loading Data, please wait");
+        Query query = firebaseFirestore.collection(Constants.USERS).document(user.getUid()).collection(Constants.ITEMS).orderBy("name", Query.Direction.ASCENDING);
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
+                    Items item = q.toObject(Items.class);
+                    itemsList.add(item);
+                }
+                showProgressBar(false);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                toast(e.toString());
+                showProgressBar(false);
+            }
+        });
+    }
+
+    private void loadAccountData() {
+        showProgressBar(true, "Loading data, please wait");
+/*        documentReference.collection(Constants.ACCOUNTS).get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot q : task.getResult()) {
+                                Accounts accounts = q.toObject(Accounts.class);
+                                accountsList.add(accounts);
+                            }
+                        } else {
+                            toast("Error getting documents: " + task.getException());
+                        }
+                        showProgressBar(false,"");
+                    }
+                });*/
+        Query query = firebaseFirestore.collection(Constants.USERS).document(user.getUid()).collection(Constants.ACCOUNTS).orderBy("name", Query.Direction.ASCENDING);
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (QueryDocumentSnapshot q : queryDocumentSnapshots) {
+                    Accounts account = q.toObject(Accounts.class);
+                    accountList.add(account);
+                }
+                showProgressBar(false);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                toast(e.toString());
+                showProgressBar(false);
+            }
+        });
+
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
@@ -296,6 +389,8 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(Constants.TRANSACTIONTYPE, Constants.CASHSALES);
         intent.putExtra(Constants.SIGN, 1);
         intent.putExtra("title", "Cash Sales");
+        intent.putExtra("accountlist", (Serializable) accountList);
+        intent.putExtra("itemlist", (Serializable) itemsList);
         startActivity(intent);
 
     }
@@ -307,6 +402,8 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(Constants.ACCOUNTS, Constants.customer);
         intent.putExtra(Constants.SIGN, -1);
         intent.putExtra(Constants.TITLE, "Credit Sales");
+        intent.putExtra("accountlist", (Serializable) accountList);
+        intent.putExtra("itemlist", (Serializable) itemsList);
         startActivity(intent);
     }
 
@@ -315,6 +412,8 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(Constants.TRANSACTIONTYPE, Constants.CASHPURCHASE);
         intent.putExtra(Constants.TITLE, "Cash Purchase");
         intent.putExtra(Constants.SIGN, -1);
+        intent.putExtra("accountlist", (Serializable) accountList);
+        intent.putExtra("itemlist", (Serializable) itemsList);
         startActivity(intent);
 
     }
@@ -324,7 +423,8 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(Constants.TRANSACTIONTYPE, Constants.EXPENSES);
         intent.putExtra(Constants.TITLE, Constants.EXPENSES);
         intent.putExtra(Constants.SIGN, -1);
-
+        intent.putExtra("accountlist", (Serializable) accountList);
+        intent.putExtra("itemlist", (Serializable) itemsList);
         startActivity(intent);
     }
 
@@ -335,10 +435,10 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(Constants.TRANSACTIONTYPEREVERSE, Constants.VENDORPAYMENTS);
         intent.putExtra(Constants.ACCOUNTS, Constants.vendor);
         intent.putExtra(Constants.SIGN, 1);
-
+        intent.putExtra("accountlist", (Serializable) accountList);
+        intent.putExtra("itemlist", (Serializable) itemsList);
         startActivity(intent);
     }
-
 
     public void banking(View view) {
         Intent intent = new Intent(MainActivity.this, Banking.class);
@@ -351,11 +451,60 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(Constants.TRANSACTIONTYPEREVERSE, Constants.LOANPAYMENT);
         intent.putExtra(Constants.ACCOUNTS, Constants.lender);
         intent.putExtra(Constants.TITLE, "Loan Management");
+        intent.putExtra("accountlist", (Serializable) accountList);
+        intent.putExtra("itemlist", (Serializable) itemsList);
         startActivity(intent);
     }
 
     public void salesOrder(View view) {
         Intent intent = new Intent(MainActivity.this, SalesOrderActivity.class);
+        intent.putExtra("accountlist", (Serializable) accountList);
+        intent.putExtra("itemlist", (Serializable) itemsList);
         startActivity(intent);
+    }
+
+    private void showProgressBar(final boolean visibility) {
+
+        runOnUiThread(new Runnable() {
+            public void run() {
+                if (visibility)
+                    showpDialog();
+                else hidepDialog();
+            }
+        });
+    }
+
+    private void showProgressBar(final boolean visibility, String message) {
+
+        runOnUiThread(new Runnable() {
+            public void run() {
+                pDialog.setMessage(message);
+                if (visibility)
+                    showpDialog();
+                else hidepDialog();
+            }
+        });
+    }
+
+    private void hidepDialog() {
+        if (pDialog.isShowing())
+            pDialog.dismiss();
+    }
+
+    private void showpDialog() {
+        if (!pDialog.isShowing())
+            pDialog.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // check if the request code is same as what is passed  here it is 2
+        if (requestCode == 10) {
+            loadItemData();
+        }
+        if (requestCode == 20) {
+            loadAccountData();
+        }
     }
 }

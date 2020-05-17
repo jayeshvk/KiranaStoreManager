@@ -2,7 +2,9 @@ package com.appdev.jayesh.kiranastoremanager.Model;
 
 import android.support.annotation.NonNull;
 
-public class Accounts {
+import java.io.Serializable;
+
+public class Accounts implements Serializable {
     private String name;
     private String mobile;
     private boolean customer;
