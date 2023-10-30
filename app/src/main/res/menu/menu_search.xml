@@ -6,5 +6,5 @@
         android:orderInCategory="100"
         android:title="Search Item"
         app:showAsAction="always"
-        app:actionViewClass="android.support.v7.widget.SearchView" />
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
 </menu>

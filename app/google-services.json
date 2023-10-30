@@ -15,11 +15,27 @@
       },
       "oauth_client": [
         {
+          "client_id": "818955569580-3ps5g2rg0as9mgo8475oc0f7sk0n9tbr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.appdev.jayesh.kiranastoremanager",
+            "certificate_hash": "023abb9eb36d9834593b8f97d7b3797327a1a844"
+          }
+        },
+        {
           "client_id": "818955569580-f3t473o1s3t19c9fhgij9eo02kbgq91s.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.appdev.jayesh.kiranastoremanager",
             "certificate_hash": "65da0f1c54450679a25528006d464964c854a7e1"
+          }
+        },
+        {
+          "client_id": "818955569580-tlq8lh1m5q409ojgd1mgufgeonvcgoig.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.appdev.jayesh.kiranastoremanager",
+            "certificate_hash": "06d8f079ec12f5985d6653020330b0244be4e8c2"
           }
         },
         {

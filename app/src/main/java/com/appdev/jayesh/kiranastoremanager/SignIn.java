@@ -4,8 +4,10 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Process;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -30,6 +32,7 @@ public class SignIn extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener authStateListener;
     ProgressDialog progressDialog;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +48,7 @@ public class SignIn extends AppCompatActivity {
                 if (firebaseAuth.getCurrentUser() != null) {
                     Toast.makeText(getApplicationContext(), "Signed in as : " + firebaseAuth.getCurrentUser().getEmail(), Toast.LENGTH_SHORT).show();
                     updateUI(firebaseAuth.getCurrentUser());
-                }
+                } else System.out.println("get user null");
             }
         };
 
@@ -62,6 +65,8 @@ public class SignIn extends AppCompatActivity {
         List<AuthUI.IdpConfig> providers = Arrays.asList(
                 new AuthUI.IdpConfig.EmailBuilder().build(),
                 new AuthUI.IdpConfig.GoogleBuilder().build());
+
+
 
         // Create and launch sign-in intent
         startActivityForResult(
@@ -127,9 +132,10 @@ public class SignIn extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         Log.d("CDA", "onBackPressed Called");
         moveTaskToBack(true);
-        android.os.Process.killProcess(android.os.Process.myPid());
+        Process.killProcess(Process.myPid());
         System.exit(0);
     }
 

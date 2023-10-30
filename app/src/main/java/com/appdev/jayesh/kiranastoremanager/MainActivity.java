@@ -7,12 +7,16 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import com.google.android.material.navigation.NavigationView;
+
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Process;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -104,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
 
         loadItemData();
         loadAccountData();
+
     }
 
     //Drawer Navigation Related Code*******************************************
@@ -212,40 +217,40 @@ public class MainActivity extends AppCompatActivity {
     private void actOnMenuClick(String subMenu) {
         switch (subMenu) {
             case "Items":
-                mDrawerLayout.closeDrawer(Gravity.START);
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 startActivityForResult(new Intent(MainActivity.this, ItemsActivity.class), 10);
                 break;
             case "Accounts":
-                mDrawerLayout.closeDrawer(Gravity.START);
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 //startActivity(new Intent(MainActivity.this, Reports.class));
                 startActivityForResult(new Intent(MainActivity.this, AccountsActivity.class), 20);
                 break;
             case "Date Report":
-                mDrawerLayout.closeDrawer(Gravity.START);
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(MainActivity.this, DateReport.class));
                 break;
             case "Sales Orders":
-                mDrawerLayout.closeDrawer(Gravity.START);
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(MainActivity.this, SalesOrdersReport.class));
                 break;
             case "Settings":
-                mDrawerLayout.closeDrawer(Gravity.START);
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(MainActivity.this, Settings.class));
                 break;
             case "Item Summary":
-                mDrawerLayout.closeDrawer(Gravity.START);
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(MainActivity.this, ItemSummaryReport.class));
                 break;
             case "Days Summary":
-                mDrawerLayout.closeDrawer(Gravity.START);
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(MainActivity.this, DaysSummaryReport.class));
                 break;
             case "Sales Summary":
-                mDrawerLayout.closeDrawer(Gravity.START);
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(MainActivity.this, SalesSummaryReport.class));
                 break;
             case "About":
-                mDrawerLayout.closeDrawer(Gravity.START);
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 String versionName = "";
                 int versionCode = -1;
                 try {
@@ -260,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
                 builder.create().show();
                 break;
             case "Stock Report":
-                mDrawerLayout.closeDrawer(Gravity.START);
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(MainActivity.this, StockReport.class));
                 break;
             case "Logout":
@@ -373,8 +378,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         moveTaskToBack(true);
-        android.os.Process.killProcess(android.os.Process.myPid());
+        Process.killProcess(Process.myPid());
         System.exit(0);
     }
 
